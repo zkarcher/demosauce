@@ -62,8 +62,8 @@ void loop() {
   //squares_perFrame( tft );
   //micCheck_perFrame( tft );
   //fftCheck_perFrame( tft );
-  //leaves_perFrame( tft, frameParams );
-  waveform_perFrame( tft, frameParams );
-  //triangleWeb_perFrame( tft, frameParams );
+  //leaves_perFrame( tft, frameParams );  // magenta background, red/white sweeping leaves
+  //waveform_perFrame( tft, frameParams );  // blue background, yellow waveform
+  triangleWeb_perFrame( tft, frameParams ); // greyscale with slight magenta tint (because 565 color?)
   //orangeGrams_perFrame( tft, frameParams );
 }

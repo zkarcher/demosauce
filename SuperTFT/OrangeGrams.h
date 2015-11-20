@@ -17,8 +17,8 @@ void orangeGrams_start( ILI9341_t3 tft ) {
 }
 
 void orangeGrams_perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
-  uint_fast16_t w = tft.width();
-  uint_fast16_t h = tft.height();
+  //uint_fast16_t w = tft.width();
+  //uint_fast16_t h = tft.height();
   
   // fillRect: flickers pretty bad
   //tft.fillRect( 0, 0, w, h, LV_RED );

@@ -21,14 +21,21 @@ Point getWebPoint( uint_fast8_t i, uint_fast8_t j, float phase ) {
   uint_fast8_t rando = (idx ^ 37);
   float angle = rando * phase;
   return (Point){ 
-    (i*64) + (cos(angle)*20.0f),
-    (j*64) + (sin(angle)*20.0f) 
+    (uint_fast16_t)( (i*64) + (cos(angle)*20.0f) ),
+    (uint_fast16_t)( (j*64) + (sin(angle)*20.0f) ) 
    };
 }
 
+uint_fast16_t scrollTest = 0;
+
 void triangleWeb_perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
-  uint_fast16_t w = tft.width();
-  uint_fast16_t h = tft.height();
+  // Hmm
+  tft.setScroll( scrollTest );
+  scrollTest++;
+  if( scrollTest >= 320 ) scrollTest = 0;
+  
+  //uint_fast16_t w = tft.width();
+  //uint_fast16_t h = tft.height();
   
   // fillRect: flickers pretty bad
   //tft.fillRect( 0, 0, w, h, LV_RED );
