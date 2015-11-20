@@ -11,16 +11,16 @@ SquareVars sq = (SquareVars){0};
 
 const uint_fast8_t SQ_SIZE = 16;
 
-void squares_perFrame( ILI9341_t3 tft ) {
+void magentaSquares_perFrame( ILI9341_t3 tft ) {
   uint_fast16_t w = tft.width();
   uint_fast16_t h = tft.height();
-  
+
   for( uint_fast8_t i=0; i<w; i+=SQ_SIZE ) {
     for( uint_fast8_t j=0; j<h; j+=SQ_SIZE ) {
 
       tft.drawRect( i, j, SQ_SIZE, SQ_SIZE, 0x0 );
       //tft.fillRect( i, j, SQ_SIZE, SQ_SIZE, 0x0 );
-            
+
       uint_fast8_t bright = (i+j+sq._step) & 0xff;
       uint_fast16_t clr = tft.color565( bright, 0, bright );
 
@@ -30,7 +30,7 @@ void squares_perFrame( ILI9341_t3 tft ) {
   }
 
   //delay(10);
-  
+
   sq._step += 0x1f;
 }
 

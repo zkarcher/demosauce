@@ -20,7 +20,7 @@ void micCheck_perFrame( ILI9341_t3 tft ) {
     // analogRead: range [0..1024] . No energy == 512.
     amp += abs( analogRead( MIC_PIN ) - 512 );
   }
-  
+
   float amp_f = amp * (1.0/(SAMPLES_PER_FRAME*512));  // range [0..1]
 
   // Weight so it appears louder
@@ -28,7 +28,7 @@ void micCheck_perFrame( ILI9341_t3 tft ) {
   amp_f *= amp_f;
   amp_f *= amp_f;
   amp_f = (1.0-amp_f);
-  
+
   amp = amp_f * (max(w,h)*0.5); // Scale so full amp == max width/height of screen
 
   // Hollow out the previous circle
@@ -36,8 +36,9 @@ void micCheck_perFrame( ILI9341_t3 tft ) {
     tft.fillCircle( w/2, h/2, mc.lastAmp-1, 0x0 );
   }
 
+  // White outline
   uint_fast8_t bright = ((1.0f-amp_f) * 0x7f) + 0x80;
-  tft.fillCircle( w/2, h/2, amp, tft.color565( bright, bright, bright ) );
+  tft.drawCircle( w/2, h/2, amp, tft.color565( bright, bright, bright ) );
 
   mc.lastAmp = amp;
 }

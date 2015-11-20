@@ -14,6 +14,7 @@ void orangeGrams_start( ILI9341_t3 tft ) {
   uint_fast16_t w = tft.width();
   uint_fast16_t h = tft.height();
   tft.fillRect( 0, 0, w, h, 0x0 );
+  tft.setScroll( 0 );
 }
 
 void orangeGrams_perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
@@ -37,7 +38,7 @@ void orangeGrams_perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
     }
   }
 
-  //delay( 10 );
+  delay( 10 );
   
   /* 
   triWeb._phase += frameParams.timeMult * 0.0005 * (frameParams.audioMean*3.0f + 1.0f);

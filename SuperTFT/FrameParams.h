@@ -13,4 +13,3 @@ struct Point {
 };
 
 #endif
-
