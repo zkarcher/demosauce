@@ -21,6 +21,19 @@ ILI9341_t3 tft = ILI9341_t3(TFT_CS, TFT_DC);
 FrameParams frameParams;
 long previousMillis = 0;
 
+enum animationType {
+  kAnimMagentaSquares = 0,
+  kAnimLeaves,
+  kAnimWaveform,
+  kAnimTriangleWeb,
+  kAnim_COUNT
+};
+
+uint_fast8_t activeAnim = 0;
+
+const int_fast16_t DEFAULT_ANIM_TIME = 10 * 1000;  // ms
+int_fast16_t animTimeLeft = DEFAULT_ANIM_TIME;
+
 void setup() {
   // Backlight
   pinMode( BACKLIGHT_PIN, OUTPUT );
@@ -71,7 +84,7 @@ void loop() {
   //micCheck_perFrame( tft, frameParams );
 
   // TODO: Add mic reactivity:
-  greenCycle_perFrame( tft, frameParams );
+  //greenCycle_perFrame( tft, frameParams );
 
   // TODO: Animations need work:
   //orangeGrams_perFrame( tft, frameParams );
@@ -81,5 +94,24 @@ void loop() {
   //waveform_perFrame( tft, frameParams );  // blue background, yellow waveform
   //leaves_perFrame( tft, frameParams );  // magenta background, red/white sweeping leaves
   //magentaSquares_perFrame( tft, frameParams );
+
+  switch( activeAnim ) {
+    case kAnimMagentaSquares:    magentaSquares_perFrame( tft, frameParams ); break;
+    case kAnimLeaves:            leaves_perFrame( tft, frameParams ); break;
+    case kAnimWaveform:          waveform_perFrame( tft, frameParams ); break;
+    case kAnimTriangleWeb:       triangleWeb_perFrame( tft, frameParams ); break;
+    case kAnim_COUNT:            break;
+  }
+
+  animTimeLeft -= elapsed;
+  if( animTimeLeft <= 0 ) {
+    animTimeLeft = DEFAULT_ANIM_TIME;
+
+    activeAnim++;
+
+    if( activeAnim >= kAnim_COUNT ) {
+      activeAnim = (animationType)(0);
+    }
+  }
 
 }
