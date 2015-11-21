@@ -1,5 +1,5 @@
-#ifndef SQUARES_H__
-#define SQUARES_H__
+#ifndef MAGENTA_SQUARES_H__
+#define MAGENTA_SQUARES_H__
 
 #include <Arduino.h>
 #include "ILI9341_t3.h"

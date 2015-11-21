@@ -11,6 +11,7 @@
 #include "Waveform.h"
 #include "TriangleWeb.h"
 #include "OrangeGrams.h"
+#include "GreenCycle.h"
 
 const uint8_t TFT_DC = 9;
 const uint8_t TFT_CS = 10;
@@ -37,12 +38,14 @@ void setup() {
 
   tft.setRotation( 3 ); // ribbon cable on left
   tft.setScroll( 0 );
+  tft.setColorSetDefault();
 
   // After rotation is set: Prepare animations
   //leaves_start( tft );
   waveform_setup( tft );
   triangleWeb_setup( tft );
   magentaSquares_setup( tft );
+  greenCycle_setup( tft );
 }
 
 void loop() {
@@ -68,7 +71,7 @@ void loop() {
   //micCheck_perFrame( tft, frameParams );
 
   // TODO: Add mic reactivity:
-  magentaSquares_perFrame( tft, frameParams );
+  greenCycle_perFrame( tft, frameParams );
 
   // TODO: Animations need work:
   //orangeGrams_perFrame( tft, frameParams );
@@ -77,5 +80,6 @@ void loop() {
   //triangleWeb_perFrame( tft, frameParams ); // greyscale with slight magenta tint (because 565 color?)
   //waveform_perFrame( tft, frameParams );  // blue background, yellow waveform
   //leaves_perFrame( tft, frameParams );  // magenta background, red/white sweeping leaves
+  //magentaSquares_perFrame( tft, frameParams );
 
 }
