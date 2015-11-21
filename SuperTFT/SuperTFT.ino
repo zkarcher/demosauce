@@ -11,7 +11,7 @@
 #include "Waveform.h"
 #include "TriangleWeb.h"
 #include "OrangeGrams.h"
-#include "GreenCycle.h"
+#include "Checkerboard.h"
 
 const uint8_t TFT_DC = 9;
 const uint8_t TFT_CS = 10;
@@ -22,7 +22,8 @@ FrameParams frameParams;
 long previousMillis = 0;
 
 enum animationType {
-  kAnimMagentaSquares = 0,
+  kAnimCheckerboard = 0,
+  kAnimMagentaSquares,
   kAnimLeaves,
   kAnimWaveform,
   kAnimTriangleWeb,
@@ -55,10 +56,10 @@ void setup() {
 
   // After rotation is set: Prepare animations
   //leaves_start( tft );
+  checkerboard_setup( tft );
   waveform_setup( tft );
   triangleWeb_setup( tft );
   magentaSquares_setup( tft );
-  greenCycle_setup( tft );
 }
 
 void loop() {
@@ -95,13 +96,18 @@ void loop() {
   //leaves_perFrame( tft, frameParams );  // magenta background, red/white sweeping leaves
   //magentaSquares_perFrame( tft, frameParams );
 
+  checkerboard_perFrame( tft, frameParams );
+
+  /*
   switch( activeAnim ) {
+    case kAnimCheckerboard:      checkerboard_perFrame( tft, frameParams ); break;
     case kAnimMagentaSquares:    magentaSquares_perFrame( tft, frameParams ); break;
     case kAnimLeaves:            leaves_perFrame( tft, frameParams ); break;
     case kAnimWaveform:          waveform_perFrame( tft, frameParams ); break;
     case kAnimTriangleWeb:       triangleWeb_perFrame( tft, frameParams ); break;
     case kAnim_COUNT:            break;
   }
+  */
 
   animTimeLeft -= elapsed;
   if( animTimeLeft <= 0 ) {
