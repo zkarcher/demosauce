@@ -3,17 +3,20 @@
 
 #include <Arduino.h>
 #include "ILI9341_t3.h"
+#include "MathUtil.h"
 
 struct SquareVars {
   uint_fast8_t _step;
   float _audioPeak;
-  uint_fast8_t _ripple;
+  uint_fast8_t _ripplePos;
+  uint_fast8_t _rippleSpeed;
 };
 SquareVars sq = (SquareVars){0};
 
 const uint_fast8_t SQ_SPEED = 0x06;
 const uint_fast8_t SQ_SIZE = 16;
-const uint_fast8_t RIPPLE_SPEED = 0x0a;
+const uint_fast8_t RIPPLE_SPEED_MIN = 0x05;
+const uint_fast8_t RIPPLE_SPEED_MAX = 0x0b;
 const uint_fast8_t RIPPLE_STROKE = 0x20;
 const float RIPPLE_AMP_LATCH = 1.5f;
 const float RIPPLE_AMP_DECAY = 0.01f;
@@ -55,7 +58,9 @@ void magentaSquares_perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
   // Trigger a new audio ripple?
   float amp_f = frameParams.audioMean;  // range [0..1]
   if( amp_f > sq._audioPeak ) {
-    sq._ripple = 0.0; // reset the ripple
+    sq._ripplePos = 0.0; // reset the ripple
+
+    sq._rippleSpeed = lerp( RIPPLE_SPEED_MIN, RIPPLE_SPEED_MAX, min( 1.0, amp_f/sq._audioPeak - 1.0 ) );
 
     // The next peak must be ~1.5x louder than this one to trigger a ripple
     sq._audioPeak = amp_f * RIPPLE_AMP_LATCH;
@@ -75,8 +80,8 @@ void magentaSquares_perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
       // If this square is within the ripple area, draw using white
       uint_fast8_t idx = j*sqAcross + i;
       uint_fast8_t radius = radii[idx];
-      if( (radius < sq._ripple) && (sq._ripple < radius+RIPPLE_STROKE) ) {
-        clr = tft.color565( 0xff, 0xff, 0xff );
+      if( (radius < sq._ripplePos) && (sq._ripplePos < radius+RIPPLE_STROKE) ) {
+        clr = tft.color565( 0xff, random(0x99,0xff), 0xff );
 
       } else {
         uint_fast8_t bright = (x+y+sq._step) & 0xff;
@@ -92,7 +97,7 @@ void magentaSquares_perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
 
   sq._step += SQ_SPEED * frameParams.timeMult;
   sq._audioPeak *= (1.0 - RIPPLE_AMP_DECAY * frameParams.timeMult);
-  sq._ripple = min( 0xff, (uint_fast16_t)sq._ripple + RIPPLE_SPEED * frameParams.timeMult );
+  sq._ripplePos = min( 0xff, (uint_fast16_t)sq._ripplePos + sq._rippleSpeed * frameParams.timeMult );
 }
 
 #endif
