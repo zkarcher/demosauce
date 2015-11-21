@@ -5,10 +5,14 @@
 #include "ILI9341_t3.h"
 #include "MathUtil.h"
 
-const uint_fast8_t CHECKERBOARD_SIZE_MIN = 12;
+const uint_fast8_t CHECKERBOARD_SIZE_MIN = 20;
 const uint_fast8_t CHECKERBOARD_SIZE_MAX = 60;
 
-const float CHECKERBOARD_ZOOM_SPEED = 0.03;
+const float CHECKERBOARD_ZOOM_SPEED = 0.027;
+
+const float CHECKERBOARD_STRAFE_DISTANCE = 5;  // in squares
+const float CHECKERBOARD_STRAFE_SPEED_X = 0.015;
+const float CHECKERBOARD_STRAFE_SPEED_Y = 0.012;
 
 struct CheckerboardVars {
   float _phase;
@@ -24,38 +28,45 @@ void checkerboard_perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
   int_fast16_t w = (int_fast16_t)tft.width();
   int_fast16_t h = (int_fast16_t)tft.height();
 
-  cb._phase += CHECKERBOARD_ZOOM_SPEED * frameParams.timeMult;
+  cb._phase += frameParams.timeMult;
 
-  float sizer = (cos(cb._phase) + 1.0) * 0.5; // Range 0..1
+  float sizer = (cos(cb._phase*CHECKERBOARD_ZOOM_SPEED) + 1.0) * 0.5; // Range 0..1
   uint_fast8_t size = lerp( CHECKERBOARD_SIZE_MIN, CHECKERBOARD_SIZE_MAX, sizer );
 
-  uint_fast16_t colorDark = tft.color565( 0xff, 0, 0 );
-  uint_fast16_t colorLight = tft.color565( 0xff, 0xff, 0xff );
-
   // Zoom in & out from center
-  uint_fast8_t sqLeftOfCenter = ceil( (w/2) / (float)size );
-  int_fast16_t startX = (w/2) - sqLeftOfCenter * size;
-  uint_fast8_t sqAboveCenter = ceil( (h/2) / (float)size );
-  int_fast16_t startY = (h/2) - sqAboveCenter * size;
+  int_fast16_t strafeX = sin(cb._phase*CHECKERBOARD_STRAFE_SPEED_X) * CHECKERBOARD_STRAFE_DISTANCE * size;
+  uint_fast8_t sqLeftOfCenter = ceil( (w/2 + strafeX) / (float)size );
+  int_fast16_t startX = (w/2) - sqLeftOfCenter * size + strafeX;
+
+  int_fast16_t strafeY = sin(cb._phase*CHECKERBOARD_STRAFE_SPEED_Y) * CHECKERBOARD_STRAFE_DISTANCE * size;
+  uint_fast8_t sqAboveCenter = ceil( (h/2 + strafeY) / (float)size );
+  int_fast16_t startY = (h/2) - sqAboveCenter * size + strafeY;
 
   // First square is light or 8dark?
   boolean startLight = (sqLeftOfCenter%2) ^ (sqAboveCenter%2);
 
+  int_fast8_t sqX = -sqLeftOfCenter;
   for( int_fast16_t x=startX; x<w; x+=size ) {
     boolean isLight = startLight;
 
     int16_t drawX = max( x, 0 );
     int16_t drawW = (x >= 0) ? size : (size+x);
 
+    int_fast8_t sqY = -sqAboveCenter;
     for( int_fast16_t y=startY; y<h; y+=size ) {
       int16_t drawY = max( y, 0 );
       int16_t drawH = (y >= 0) ? size : (size+y);
 
-      tft.fillRect( drawX, drawY, drawW, drawH, (isLight ? colorLight : colorDark) );
+      uint_fast16_t color = tft.color565( (sqX * sqY * 57), (isLight ? 0xff : 0), (isLight ? 0xff : 0) );
+
+      tft.fillRect( drawX, drawY, drawW, drawH, color );
       isLight = !isLight;
+
+      sqY++;
     }
 
     startLight = !startLight;
+    sqX++;
   }
 
 }
