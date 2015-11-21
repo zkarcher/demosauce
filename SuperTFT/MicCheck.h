@@ -9,7 +9,7 @@ struct MicCheckVars {
 };
 MicCheckVars mc = (MicCheckVars){0};
 
-void micCheck_perFrame( ILI9341_t3 tft ) {
+void micCheck_perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
   const uint_fast8_t SAMPLES_PER_FRAME = 8;
 
   uint_fast16_t w = tft.width();

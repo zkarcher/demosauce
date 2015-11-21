@@ -42,6 +42,7 @@ void setup() {
   //leaves_start( tft );
   waveform_setup( tft );
   triangleWeb_setup( tft );
+  magentaSquares_setup( tft );
 }
 
 void loop() {
@@ -64,11 +65,10 @@ void loop() {
   frameParams.audioMean = sum * (1.0 / (512*SAMPLES_PER_FRAME));  // Range: 0..1
 
   // TESTING:
-  //micCheck_perFrame( tft );
-  //fftCheck_perFrame( tft );
+  //micCheck_perFrame( tft, frameParams );
 
   // TODO: Add mic reactivity:
-  //magentaSquares_perFrame( tft );
+  magentaSquares_perFrame( tft, frameParams );
 
   // TODO: Animations need work:
   //orangeGrams_perFrame( tft, frameParams );
