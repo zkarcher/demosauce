@@ -31,7 +31,7 @@ void checkerboard_perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
   cb._phase += frameParams.timeMult;
 
   float sizer = (cos(cb._phase*CHECKERBOARD_ZOOM_SPEED) + 1.0) * 0.5; // Range 0..1
-  float size = lerp( CHECKERBOARD_SIZE_MIN, CHECKERBOARD_SIZE_MAX, sizer );
+  float size = lerp8( CHECKERBOARD_SIZE_MIN, CHECKERBOARD_SIZE_MAX, sizer );
 
   // Zoom in & out from center
   int_fast16_t strafeX = sin(cb._phase*CHECKERBOARD_STRAFE_SPEED_X) * CHECKERBOARD_STRAFE_DISTANCE * size;
