@@ -9,6 +9,7 @@ const float CUBE_3D_ROTATE_SPEED = 0.02f;
 
 struct Cube3DVars {
   float _phase;
+	float _audio;
 };
 Cube3DVars c3d = (Cube3DVars){ 0 };
 
@@ -25,10 +26,12 @@ void cube3D_perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
 	uint_fast16_t h_2 = (h>>1);
 
 	float oldPhase = c3d._phase;
+	float oldAudio = c3d._audio;
 	float oldCos = cos( oldPhase );
 	float oldSin = sin( oldPhase );
 
   c3d._phase += frameParams.timeMult * CUBE_3D_ROTATE_SPEED;
+	c3d._audio = frameParams.audioMean;
 	float pCos = cos( c3d._phase );
 	float pSin = sin( c3d._phase );
 
@@ -40,9 +43,14 @@ void cube3D_perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
 		for( float y=-1.0f; y<=1.0f; y+=1.0f ) {
 			for( float z=-1.0f; z<=1.0f; z+=1.0f ) {
 
+				// Audio hash
+				float hash = 3.7f*x + 5.1f*y + 9.8f*z;
+				hash -= floor(hash);
+				hash = (hash*2.0) - 1.0;	// bipolar signal, -1..1
+
 				// Erase the old point
 				float x3d = oldCos*x - oldSin*z;
-				float y3d = (float)y;
+				float y3d = y + hash*oldAudio;
 				float z3d = 3.0 + oldCos*z + oldSin*x;
 
 				Point16 pt = xyz2screen( x3d, y3d, z3d, w_2, h_2 );
@@ -51,16 +59,19 @@ void cube3D_perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
 				tft.drawCircle( pt.x, pt.y, 7.0-z3d, eraseColor );
 
 				x3d = pCos*x - pSin*z;
-				//float y3d = (float)y;	// redundant
+				y3d = y + hash*c3d._audio;
 				z3d = 3.0 + pCos*z + pSin*x;
 
 				pt = xyz2screen( x3d, y3d, z3d, w_2, h_2 );
 
-				float bright = ((3.0f+M_SQRT2)-z3d) * (1.0f/(2*M_SQRT2));	// range 0..1, higher number == closer
-				uint_fast16_t fillColor = tft.color565( 0x44, lerp8(0x66,0xff,bright), 0x44 );
+				if( pt.y >= 0 ) {	// sanity check
+					float bright = ((3.0f+M_SQRT2)-z3d) * (1.0f/(2*M_SQRT2));	// range 0..1, higher number == closer
+					uint_fast16_t fillColor = tft.color565( 0x44, lerp8(0x66,0xff,bright), 0x44 );
 
-				//tft.drawCircle( pt.x, pt.y, 5, border );
-				tft.drawCircle( pt.x, pt.y, 7.0-z3d, fillColor );
+					//tft.drawCircle( pt.x, pt.y, 5, border );
+					tft.drawCircle( pt.x, pt.y, 7.0-z3d, fillColor );
+				}
+
 			}
 		}
 	}
