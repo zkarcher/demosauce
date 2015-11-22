@@ -13,6 +13,7 @@
 #include "OrangeGrams.h"
 #include "Checkerboard.h"
 #include "Cube3D.h"
+#include "Sphere3D.h"
 
 const uint8_t TFT_DC = 9;
 const uint8_t TFT_CS = 10;
@@ -29,6 +30,7 @@ enum animationType {
   kAnimWaveform,
   kAnimTriangleWeb,
   kAnimCube3D,
+  kAnimSphere3D,
   kAnim_COUNT
 };
 
@@ -63,6 +65,7 @@ void setup() {
   triangleWeb_setup( tft );
   magentaSquares_setup( tft );
   cube3D_setup( tft );
+  sphere3D_setup( tft );
 }
 
 void loop() {
@@ -89,16 +92,18 @@ void loop() {
 
   // TODO: Animations need work:
   //orangeGrams_perFrame( tft, frameParams );
-  cube3D_perFrame( tft, frameParams );
 
   // TODO: Add mic reactivity:
   //checkerboard_perFrame( tft, frameParams );
+
+  sphere3D_perFrame( tft, frameParams );
 
   // Working:
   //triangleWeb_perFrame( tft, frameParams ); // greyscale with slight magenta tint (because 565 color?)
   //waveform_perFrame( tft, frameParams );  // blue background, yellow waveform
   //leaves_perFrame( tft, frameParams );  // magenta background, red/white sweeping leaves
   //magentaSquares_perFrame( tft, frameParams );
+  //cube3D_perFrame( tft, frameParams );
 
   /*
   switch( activeAnim ) {
@@ -107,6 +112,8 @@ void loop() {
     case kAnimLeaves:            leaves_perFrame( tft, frameParams ); break;
     case kAnimWaveform:          waveform_perFrame( tft, frameParams ); break;
     case kAnimTriangleWeb:       triangleWeb_perFrame( tft, frameParams ); break;
+    case kAnimCube3D:            cube3D_perFrame( tft, frameParams ); break;
+    case kAnimSphere3D:          sphere3D_perFrame( tft, frameParams ); break;
     case kAnim_COUNT:            break;
   }
   */
