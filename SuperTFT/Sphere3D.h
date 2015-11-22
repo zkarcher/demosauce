@@ -25,8 +25,14 @@ void sphere3D_drawLine( ILI9341_t3 tft, float x, float y, float z, uint_fast16_t
 
 	Point16 innerPt = xyz2screen( x, y, z+SPHERE_DISTANCE, w_2, h_2 );
 	Point16 outerPt = xyz2screen( x*SPHERE_OUTER_MULT, y*SPHERE_OUTER_MULT, z*SPHERE_OUTER_MULT + SPHERE_DISTANCE, w_2, h_2 );
-
 	tft.drawLine( innerPt.x, innerPt.y, outerPt.x, outerPt.y, color );
+
+	// Just for kicks... Let's draw some circumference lines
+	const float WHAT_AM_I_DOING = 0.1f;
+	Point16 p0 = xyz2screen( x-z*WHAT_AM_I_DOING, y, z+x*WHAT_AM_I_DOING + SPHERE_DISTANCE, w_2, h_2 );
+	Point16 p1 = xyz2screen( x+z*WHAT_AM_I_DOING, y, z-x*WHAT_AM_I_DOING + SPHERE_DISTANCE, w_2, h_2 );
+	tft.drawLine( p0.x, p0.y, p1.x, p1.y, color );
+
 }
 
 void sphere3D_perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
