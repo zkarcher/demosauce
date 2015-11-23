@@ -5,6 +5,8 @@
 #define BACKLIGHT_PIN (23)
 
 #include "FrameParams.h"
+
+// Animations
 #include "MagentaSquares.h"
 #include "MicCheck.h"
 #include "Leaves.h"
@@ -14,6 +16,9 @@
 #include "Checkerboard.h"
 #include "Cube3D.h"
 #include "Sphere3D.h"
+
+// Transitions
+#include "TransitionSquares.h"
 
 const uint8_t TFT_DC = 9;
 const uint8_t TFT_CS = 10;
@@ -38,6 +43,8 @@ uint_fast8_t activeAnim = 0;
 
 const int_fast16_t DEFAULT_ANIM_TIME = 10 * 1000;  // ms
 int_fast16_t animTimeLeft = DEFAULT_ANIM_TIME;
+
+boolean isTransition = false;
 
 void setup() {
   // Backlight
@@ -96,7 +103,7 @@ void loop() {
   // TODO: Add mic reactivity:
   //checkerboard_perFrame( tft, frameParams );
 
-  sphere3D_perFrame( tft, frameParams );
+  //sphere3D_perFrame( tft, frameParams );
 
   // Working:
   //triangleWeb_perFrame( tft, frameParams ); // greyscale with slight magenta tint (because 565 color?)
@@ -105,7 +112,6 @@ void loop() {
   //magentaSquares_perFrame( tft, frameParams );
   //cube3D_perFrame( tft, frameParams );
 
-  /*
   switch( activeAnim ) {
     case kAnimCheckerboard:      checkerboard_perFrame( tft, frameParams ); break;
     case kAnimMagentaSquares:    magentaSquares_perFrame( tft, frameParams ); break;
@@ -116,17 +122,33 @@ void loop() {
     case kAnimSphere3D:          sphere3D_perFrame( tft, frameParams ); break;
     case kAnim_COUNT:            break;
   }
-  */
 
   animTimeLeft -= elapsed;
+
+  // Has this animation expired?
   if( animTimeLeft <= 0 ) {
-    animTimeLeft = DEFAULT_ANIM_TIME;
 
-    activeAnim++;
-
-    if( activeAnim >= kAnim_COUNT ) {
-      activeAnim = (animationType)(0);
+    // If the transition has not started yet, then start it.
+    if( !isTransition ) {
+      isTransition = true;
+      transitionSquares_reset( tft, tft.color565( random(0xff), random(0xff), random(0xff) ) );
     }
+
+    boolean isTransitionComplete = transitionSquares_perFrame( tft, frameParams );
+
+    // After the transition ends, advance to the next animation
+    if( isTransitionComplete ) {
+      isTransition = false;
+
+      animTimeLeft = DEFAULT_ANIM_TIME;
+
+      // Next animation please
+      activeAnim++;
+      if( activeAnim >= kAnim_COUNT ) {
+        activeAnim = (animationType)(0);
+      }
+    }
+
   }
 
 }
