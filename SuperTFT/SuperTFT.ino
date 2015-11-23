@@ -16,9 +16,13 @@
 #include "Checkerboard.h"
 #include "Cube3D.h"
 #include "Sphere3D.h"
+#include "TwistyText.h"
 
 // Transitions
 #include "TransitionSquares.h"
+
+const boolean DO_TRANSITIONS = false; // dev: when hacking on one animation, set this to false
+const int_fast16_t DEFAULT_ANIM_TIME = 10 * 1000;  // ms
 
 const uint8_t TFT_DC = 9;
 const uint8_t TFT_CS = 10;
@@ -29,7 +33,8 @@ FrameParams frameParams;
 long previousMillis = 0;
 
 enum animationType {
-  kAnimCheckerboard = 0,
+  kAnimTwistyText = 0,
+  kAnimCheckerboard,
   kAnimMagentaSquares,
   kAnimLeaves,
   kAnimWaveform,
@@ -40,8 +45,6 @@ enum animationType {
 };
 
 uint_fast8_t activeAnim = 0;
-
-const int_fast16_t DEFAULT_ANIM_TIME = 10 * 1000;  // ms
 int_fast16_t animTimeLeft = DEFAULT_ANIM_TIME;
 
 boolean isTransition = false;
@@ -67,6 +70,7 @@ void setup() {
 
   // After rotation is set: Prepare animations
   //leaves_start( tft );
+  twistyText_setup( tft );
   checkerboard_setup( tft );
   waveform_setup( tft );
   triangleWeb_setup( tft );
@@ -113,6 +117,7 @@ void loop() {
   //cube3D_perFrame( tft, frameParams );
 
   switch( activeAnim ) {
+    case kAnimTwistyText:        twistyText_perFrame( tft, frameParams ); break;
     case kAnimCheckerboard:      checkerboard_perFrame( tft, frameParams ); break;
     case kAnimMagentaSquares:    magentaSquares_perFrame( tft, frameParams ); break;
     case kAnimLeaves:            leaves_perFrame( tft, frameParams ); break;
@@ -126,7 +131,7 @@ void loop() {
   animTimeLeft -= elapsed;
 
   // Has this animation expired?
-  if( animTimeLeft <= 0 ) {
+  if( DO_TRANSITIONS && (animTimeLeft <= 0) ) {
 
     // If the transition has not started yet, then start it.
     if( !isTransition ) {
