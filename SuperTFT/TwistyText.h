@@ -7,27 +7,52 @@
 
 const uint_fast8_t PROGMEM TEXT_TABLE[]  = {
 	0b11111111,
-	0b00011000,
-	0b00011000,
+	0b11000011,
+	0b11000011,
+	0b01111110,
+	0,
+	0,
+	0b01111110,
+	0b11000011,
+	0b11000011,
+	0b01111110,
+	0,
+	0,
 	0b11111111,
-	0b0,
-	0b0,
+	0b00110011,
+	0b00110011,
+	0b11101110,
+	0,
+	0,
+	0b11111111,
+	0b00001100,
+	0b00110110,
+	0b11000011,
+	0,
+	0,
 	0b11111111,
 	0b11011011,
 	0b11011011,
-	0b11011011,
-	0b0,
-	0b0,
-	0b00000111,
-	0b00011100,
-	0b11110000,
-	0b00011100,
-	0b00000111
+	0b01110110,
+	0,
+	0,
+	0b01111110,
+	0b11000011,
+	0b11000011,
+	0b01111110,
+	0,
+	0,
+	0b00000011,
+	0b00000011,
+	0b11111111,
+	0b00000011,
+	0b00000011
 };
-const uint_fast8_t TEXT_TABLE_LENGTH = 17;
+uint_fast8_t TEXT_TABLE_LENGTH = sizeof( TEXT_TABLE ) / sizeof( uint_fast8_t );
 
-const uint_fast8_t TEXT_PIXEL_WIDTH = 10;
-const float TEXT_PIXEL_HEIGHT = 10.0f;
+const uint_fast8_t TEXT_PIXEL_WIDTH = 6;
+const float TEXT_PIXEL_HEIGHT = 16.0f;
+const float TEXT_3D_THICKNESS_MULT = 2.0f;
 
 const float TEXT_SPIN_SPEED = 0.007f;
 const float TWIST_AMOUNT = 0.1f;
@@ -58,13 +83,18 @@ void twistyText_perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
 	if( tt._phase > 1.0f ) tt._phase -= 1.0f;
 
 	for( uint_fast8_t c=0; c<TEXT_TABLE_LENGTH; c++ ) {
+		uint_fast8_t colByte = pgm_read_byte(&TEXT_TABLE[c]);
+		if( colByte == 0 ) continue;	// Premature optimization: Skip empty columns
+
 		uint_fast16_t left = c * TEXT_PIXEL_WIDTH;
 
 		// Erase the background
 		tft.fillRect( left, h_2 - 5*TEXT_PIXEL_HEIGHT, TEXT_PIXEL_WIDTH, 10*TEXT_PIXEL_HEIGHT, 0x0 );
 
 		float angle = (tt._phase * M_PI) + c*TWIST_AMOUNT;
-		if( angle > M_PI ) angle -= M_PI;
+
+		uint_fast8_t wrapAmt = floor( angle / M_PI );
+		angle -= wrapAmt * M_PI;
 
 		float cosAngle = cos( angle );
 		float cosAngleAbs = abs( cosAngle );
@@ -79,9 +109,7 @@ void twistyText_perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
 
 		uint_fast16_t sideColor = tft.color565( 0xff * cosAngleAbs, 0x88 * cosAngleAbs, 0 );
 
-		uint_fast16_t sideHeight = abs( cosAngle ) * TEXT_PIXEL_HEIGHT;
-
-		uint_fast8_t colByte = pgm_read_byte(&TEXT_TABLE[c]);
+		uint_fast16_t sideHeight = abs( cosAngle ) * TEXT_PIXEL_HEIGHT * TEXT_3D_THICKNESS_MULT;
 
 		// Draw a minimal number of rects. Advance from top to bottom. Track when rects start & end.
 		boolean inRect = false;
@@ -114,6 +142,7 @@ void twistyText_perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
 			}
 		}
 	}
+
 }
 
 #endif
