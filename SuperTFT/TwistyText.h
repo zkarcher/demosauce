@@ -4,58 +4,19 @@
 #include <Arduino.h>
 #include "ILI9341_t3.h"
 #include "MathUtil.h"
+#include "TwistyTextFont.h"
 
-const uint_fast8_t TEXT_PIXEL_WIDTH = 7;
-const float TEXT_PIXEL_HEIGHT = 18.0f;
+const uint_fast8_t TEXT_PIXEL_WIDTH = 4;
+const float TEXT_PIXEL_HEIGHT = 12.0f;
 const float TEXT_3D_THICKNESS_MULT = 2.0f;
 
-const float TEXT_SPIN_SPEED = 0.002f;
-const float TWIST_AMOUNT = 0.1f;
+const float TEXT_SPIN_SPEED = 0.005f;
+const float TWIST_AMOUNT = 0.02f;
 
-const uint_fast8_t PROGMEM TEXT_TABLE[]  = {
-	0b11111111,
-	0b11000011,
-	0b11000011,
-	0b01111110,
-	0,
-	0,
-	0b01111110,
-	0b11000011,
-	0b11000011,
-	0b01111110,
-	0,
-	0,
-	0b11111111,
-	0b00110011,
-	0b00110011,
-	0b11101110,
-	0,
-	0,
-	0b11111111,
-	0b00001100,
-	0b00110110,
-	0b11000011,
-	0,
-	0,
-	0b11111111,
-	0b11011011,
-	0b11011011,
-	0b01110110,
-	0,
-	0,
-	0b01111110,
-	0b11000011,
-	0b11000011,
-	0b01111110,
-	0,
-	0,
-	0b00000011,
-	0b00000011,
-	0b11111111,
-	0b00000011,
-	0b00000011
-};
-uint_fast8_t TEXT_TABLE_LENGTH = sizeof( TEXT_TABLE ) / sizeof( uint_fast8_t );
+const uint_fast8_t LINE_COUNT = 4;
+const uint_fast8_t CHARS_PER_LINE = 10;
+//                    0.........10........20........30........
+const char LINES[] = "HYDRONICS + ZKARCHER  PRESENT:SUPER-TFT!";
 
 // This function (which actually gets 'inlined' anywhere it's called)
 // exists so that gammaTable can reside out of the way down here in the
@@ -81,27 +42,49 @@ uint_fast16_t twistyText_bgColor(){
 }
 
 void twistyText_perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
-  //uint_fast16_t w = (uint_fast16_t)tft.width();
+  uint_fast16_t w = (uint_fast16_t)tft.width();
   uint_fast16_t h = (uint_fast16_t)tft.height();
 
+	uint_fast16_t paddingLeft = (w - CHARS_PER_LINE * TEXT_PIXEL_WIDTH * 7) >> 1;
 	uint_fast16_t h_2 = (h>>1);
 
 	tt._phase += frameParams.timeMult * TEXT_SPIN_SPEED;
-	if( tt._phase > 1.0f ) tt._phase -= 1.0f;
 
-	for( uint_fast8_t c=0; c<TEXT_TABLE_LENGTH; c++ ) {
-		uint_fast8_t colByte = pgm_read_byte(&TEXT_TABLE[c]);
-		if( colByte == 0 ) continue;	// Premature optimization: Skip empty columns
+	for( uint_fast8_t c=0; c<(CHARS_PER_LINE*7); c++ ) {
+		uint_fast8_t columnInChar = c % 7;
+		if( columnInChar >= 5 ) continue;	// Ignore spacing between characters
 
-		uint_fast16_t left = c * TEXT_PIXEL_WIDTH;
+		uint_fast8_t charInLine = (c / 7);
 
-		// Erase the background
-		uint_fast16_t eraseTop = h_2 - 4.5*TEXT_PIXEL_HEIGHT;
-
+		// Get the angle of rotation
 		float angle = (tt._phase * M_PI) + c*TWIST_AMOUNT;
-
-		uint_fast8_t wrapAmt = floor( angle / M_PI );
+		uint_fast16_t wrapAmt = floor( angle / M_PI );
 		angle -= wrapAmt * M_PI;
+
+		// Get the text for this rotation
+		uint_fast8_t lineIdx = wrapAmt % LINE_COUNT;
+		char asciiValue = LINES[ lineIdx*CHARS_PER_LINE + charInLine ];
+
+		uint_fast8_t fontIdx;
+		switch( asciiValue ) {
+			case '+':			fontIdx = 26; break;
+			case ':':     fontIdx = 27; break;
+			case '-':     fontIdx = 28; break;
+			case '!':     fontIdx = 29; break;
+			default:      fontIdx = asciiValue - 'A'; break;
+		}
+
+		uint_fast16_t charStart = fontIdx * 5;	// 5 columns per character
+
+		uint_fast8_t colByte = 0;
+		if( (0 <= charStart) && (charStart < FONT_TABLE_LENGTH) ) {
+			colByte = pgm_read_byte( &FONT_TABLE[ charStart + columnInChar ] );
+		}
+
+		uint_fast16_t left = paddingLeft + c * TEXT_PIXEL_WIDTH;
+
+		// Prepare to erase the background
+		uint_fast16_t eraseTop = h_2 - 4.5*TEXT_PIXEL_HEIGHT;
 
 		float cosAngle = cos( angle );
 		float cosAngleAbs = abs( cosAngle );
