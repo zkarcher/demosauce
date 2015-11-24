@@ -20,7 +20,7 @@ void sphere3D_setup( ILI9341_t3 tft ) {
   //uint_fast16_t w = tft.width();
   //uint_fast16_t h = tft.height();
 
-  s3d._bgColor = tft.color565( 0, 0x66, 0x66 );
+  s3d._bgColor = tft.color565( 0, 0x44, 0x44 );
 }
 
 uint_fast16_t sphere3D_bgColor(){

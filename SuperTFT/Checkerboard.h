@@ -24,7 +24,7 @@ void checkerboard_setup( ILI9341_t3 tft ) {
   //uint_fast16_t w = tft.width();
   //uint_fast16_t h = tft.height();
 
-  cb._bgColor = tft.color565( 0xff, 0xcc, 0xcc );
+  cb._bgColor = tft.color565( 0xff, 0xbb, 0xbb );
 }
 
 uint_fast16_t checkerboard_bgColor(){
