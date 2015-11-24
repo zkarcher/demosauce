@@ -44,10 +44,11 @@ enum animationType {
   kAnim_COUNT
 };
 
-uint_fast8_t activeAnim = 0;
+int_fast8_t activeAnim = -1;
 int_fast16_t animTimeLeft = DEFAULT_ANIM_TIME;
+int_fast8_t nextAnim = -1;
 
-boolean isTransition = false;
+boolean isTransition = true;
 
 void setup() {
   // Backlight
@@ -77,6 +78,26 @@ void setup() {
   magentaSquares_setup( tft );
   cube3D_setup( tft );
   sphere3D_setup( tft );
+
+  if( activeAnim == -1 ) {
+    startAnimation( 0 );
+  }
+}
+
+int_fast16_t animationBGColor( int_fast8_t anim ){
+  switch( anim ) {
+    case kAnimTwistyText:       return twistyText_bgColor();
+    default:                    return tft.color565( random(0xff), random(0xff), random(0xff) );
+  }
+  return 0x0;
+}
+
+void startAnimation( int_fast8_t anim ) {
+  isTransition = false;
+
+  activeAnim = anim;
+  animTimeLeft = DEFAULT_ANIM_TIME;
+  tft.fillScreen( animationBGColor( activeAnim ) );
 }
 
 void loop() {
@@ -136,22 +157,15 @@ void loop() {
     // If the transition has not started yet, then start it.
     if( !isTransition ) {
       isTransition = true;
-      transitionSquares_reset( tft, tft.color565( random(0xff), random(0xff), random(0xff) ) );
+      nextAnim = (activeAnim + 1) % (int_fast8_t)(kAnim_COUNT);
+
+      transitionSquares_reset( tft, animationBGColor(nextAnim) );
     }
 
-    boolean isTransitionComplete = transitionSquares_perFrame( tft, frameParams );
-
     // After the transition ends, advance to the next animation
+    boolean isTransitionComplete = transitionSquares_perFrame( tft, frameParams );
     if( isTransitionComplete ) {
-      isTransition = false;
-
-      animTimeLeft = DEFAULT_ANIM_TIME;
-
-      // Next animation please
-      activeAnim++;
-      if( activeAnim >= kAnim_COUNT ) {
-        activeAnim = (animationType)(0);
-      }
+      startAnimation( nextAnim );
     }
 
   }

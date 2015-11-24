@@ -65,12 +65,19 @@ const float TWIST_AMOUNT = 0.1f;
 
 struct TwistyTextVars {
   float _phase;
+	uint_fast16_t _bgColor;
 };
 TwistyTextVars tt = (TwistyTextVars){ 0 };
 
 void twistyText_setup( ILI9341_t3 tft ) {
   //uint_fast16_t w = tft.width();
   //uint_fast16_t h = tft.height();
+
+	tt._bgColor = tft.color565( 0, 0, 0x66 );
+}
+
+uint_fast16_t twistyText_bgColor(){
+	return tt._bgColor;
 }
 
 void twistyText_perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
@@ -81,8 +88,6 @@ void twistyText_perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
 
 	tt._phase += frameParams.timeMult * TEXT_SPIN_SPEED;
 	if( tt._phase > 1.0f ) tt._phase -= 1.0f;
-
-	uint_fast16_t bgColor = tft.color565( 0, 0, 0x66 );
 
 	for( uint_fast8_t c=0; c<TEXT_TABLE_LENGTH; c++ ) {
 		uint_fast8_t colByte = pgm_read_byte(&TEXT_TABLE[c]);
@@ -139,7 +144,7 @@ void twistyText_perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
 					tft.fillRect( left, top+height, TEXT_PIXEL_WIDTH, sideHeight, sideColor );
 
 					// Erase above
-					tft.fillRect( left, eraseTop, TEXT_PIXEL_WIDTH, top-eraseTop, bgColor );
+					tft.fillRect( left, eraseTop, TEXT_PIXEL_WIDTH, top-eraseTop, tt._bgColor );
 					eraseTop = top + height + sideHeight;
 
 				} else {
@@ -147,14 +152,14 @@ void twistyText_perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
 					tft.fillRect( left, top-sideHeight, TEXT_PIXEL_WIDTH, sideHeight, sideColor );
 
 					// Erase above
-					tft.fillRect( left, eraseTop, TEXT_PIXEL_WIDTH, (top-sideHeight)-eraseTop, bgColor );
+					tft.fillRect( left, eraseTop, TEXT_PIXEL_WIDTH, (top-sideHeight)-eraseTop, tt._bgColor );
 					eraseTop = top + height;
 				}
 			}
 		}
 
 		// Erase old graphics below the column
-		tft.fillRect( left, eraseTop, TEXT_PIXEL_WIDTH, (h_2+4.5*TEXT_PIXEL_HEIGHT)-eraseTop, bgColor );
+		tft.fillRect( left, eraseTop, TEXT_PIXEL_WIDTH, (h_2+4.5*TEXT_PIXEL_HEIGHT)-eraseTop, tt._bgColor );
 
 	}	// end each column
 
