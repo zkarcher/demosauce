@@ -25,18 +25,18 @@
 enum animationType {
   kAnimTwistyText = 0,
   kAnimPlasmaCloud,
-  kAnimCheckerboard,
   kAnimWaveform,
+  kAnimCheckerboard,
+  kAnimCube3D,
   kAnimPlasmaYellow,
-  kAnimSphere3D,
   kAnimMagentaSquares,
   kAnimLeaves,
-  kAnimCube3D,
   kAnimTriangleWeb,
+  kAnimSphere3D,
   kAnim_COUNT
 };
 
-const boolean DEBUG_MODE = true; // dev: for hacking on one animation
+const boolean DEBUG_MODE = false; // dev: for hacking on one animation
 const uint_fast8_t DEBUG_ANIMATION = kAnimPlasmaCloud;
 
 const int_fast16_t DEFAULT_ANIM_TIME = 10 * 1000;  // ms
