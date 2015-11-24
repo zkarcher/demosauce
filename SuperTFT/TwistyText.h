@@ -5,6 +5,13 @@
 #include "ILI9341_t3.h"
 #include "MathUtil.h"
 
+const uint_fast8_t TEXT_PIXEL_WIDTH = 7;
+const float TEXT_PIXEL_HEIGHT = 18.0f;
+const float TEXT_3D_THICKNESS_MULT = 2.0f;
+
+const float TEXT_SPIN_SPEED = 0.002f;
+const float TWIST_AMOUNT = 0.1f;
+
 const uint_fast8_t PROGMEM TEXT_TABLE[]  = {
 	0b11111111,
 	0b11000011,
@@ -49,13 +56,6 @@ const uint_fast8_t PROGMEM TEXT_TABLE[]  = {
 	0b00000011
 };
 uint_fast8_t TEXT_TABLE_LENGTH = sizeof( TEXT_TABLE ) / sizeof( uint_fast8_t );
-
-const uint_fast8_t TEXT_PIXEL_WIDTH = 7;
-const float TEXT_PIXEL_HEIGHT = 18.0f;
-const float TEXT_3D_THICKNESS_MULT = 2.0f;
-
-const float TEXT_SPIN_SPEED = 0.007f;
-const float TWIST_AMOUNT = 0.1f;
 
 // This function (which actually gets 'inlined' anywhere it's called)
 // exists so that gammaTable can reside out of the way down here in the
@@ -149,7 +149,11 @@ void twistyText_perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
 
 				} else {
 					// Side protrudes above: (text is facing down)
-					tft.fillRect( left, top-sideHeight, TEXT_PIXEL_WIDTH, sideHeight, sideColor );
+					uint_fast16_t drawTop = max( top-sideHeight, eraseTop );	// Don't draw over the letter material
+					int_fast16_t drawHeight = top - drawTop;
+					if( drawHeight > 0 ) {
+						tft.fillRect( left, drawTop, TEXT_PIXEL_WIDTH, drawHeight, sideColor );
+					}
 
 					// Erase above
 					tft.fillRect( left, eraseTop, TEXT_PIXEL_WIDTH, (top-sideHeight)-eraseTop, tt._bgColor );
