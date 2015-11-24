@@ -10,12 +10,20 @@ const float CUBE_3D_ROTATE_SPEED = 0.02f;
 struct Cube3DVars {
   float _phase;
 	float _audio;
+
+  uint_fast16_t _bgColor;
 };
 Cube3DVars c3d = (Cube3DVars){ 0 };
 
 void cube3D_setup( ILI9341_t3 tft ) {
   //uint_fast16_t w = tft.width();
   //uint_fast16_t h = tft.height();
+
+  c3d._bgColor = tft.color565( 0, 0, 0 );
+}
+
+uint_fast16_t cube3D_bgColor(){
+	return c3d._bgColor;
 }
 
 void cube3D_perFrame( ILI9341_t3 tft, FrameParams frameParams ) {

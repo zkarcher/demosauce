@@ -21,7 +21,7 @@
 // Transitions
 #include "TransitionSquares.h"
 
-const boolean DO_TRANSITIONS = false; // dev: when hacking on one animation, set this to false
+const boolean DO_TRANSITIONS = true; // dev: when hacking on one animation, set this to false
 const int_fast16_t DEFAULT_ANIM_TIME = 10 * 1000;  // ms
 
 const uint8_t TFT_DC = 9;
@@ -70,7 +70,7 @@ void setup() {
   tft.setColorSetDefault();
 
   // After rotation is set: Prepare animations
-  //leaves_start( tft );
+  leaves_setup( tft );
   twistyText_setup( tft );
   checkerboard_setup( tft );
   waveform_setup( tft );
@@ -87,6 +87,13 @@ void setup() {
 int_fast16_t animationBGColor( int_fast8_t anim ){
   switch( anim ) {
     case kAnimTwistyText:       return twistyText_bgColor();
+    case kAnimCheckerboard:     return checkerboard_bgColor(); break;
+    case kAnimMagentaSquares:   return magentaSquares_bgColor(); break;
+    case kAnimLeaves:           return leaves_bgColor(); break;
+    case kAnimWaveform:         return waveform_bgColor(); break;
+    case kAnimTriangleWeb:      return triangleWeb_bgColor(); break;
+    case kAnimCube3D:           return cube3D_bgColor(); break;
+    case kAnimSphere3D:         return sphere3D_bgColor(); break;
     default:                    return tft.color565( random(0xff), random(0xff), random(0xff) );
   }
   return 0x0;
@@ -127,6 +134,7 @@ void loop() {
 
   // TODO: Add mic reactivity:
   //checkerboard_perFrame( tft, frameParams );
+  //twistyText_perFrame( tft, frameParams );
 
   //sphere3D_perFrame( tft, frameParams );
 
@@ -137,19 +145,23 @@ void loop() {
   //magentaSquares_perFrame( tft, frameParams );
   //cube3D_perFrame( tft, frameParams );
 
-  switch( activeAnim ) {
-    case kAnimTwistyText:        twistyText_perFrame( tft, frameParams ); break;
-    case kAnimCheckerboard:      checkerboard_perFrame( tft, frameParams ); break;
-    case kAnimMagentaSquares:    magentaSquares_perFrame( tft, frameParams ); break;
-    case kAnimLeaves:            leaves_perFrame( tft, frameParams ); break;
-    case kAnimWaveform:          waveform_perFrame( tft, frameParams ); break;
-    case kAnimTriangleWeb:       triangleWeb_perFrame( tft, frameParams ); break;
-    case kAnimCube3D:            cube3D_perFrame( tft, frameParams ); break;
-    case kAnimSphere3D:          sphere3D_perFrame( tft, frameParams ); break;
-    case kAnim_COUNT:            break;
-  }
+  if( !isTransition ) {
 
-  animTimeLeft -= elapsed;
+    switch( activeAnim ) {
+      case kAnimTwistyText:        twistyText_perFrame( tft, frameParams ); break;
+      case kAnimCheckerboard:      checkerboard_perFrame( tft, frameParams ); break;
+      case kAnimMagentaSquares:    magentaSquares_perFrame( tft, frameParams ); break;
+      case kAnimLeaves:            leaves_perFrame( tft, frameParams ); break;
+      case kAnimWaveform:          waveform_perFrame( tft, frameParams ); break;
+      case kAnimTriangleWeb:       triangleWeb_perFrame( tft, frameParams ); break;
+      case kAnimCube3D:            cube3D_perFrame( tft, frameParams ); break;
+      case kAnimSphere3D:          sphere3D_perFrame( tft, frameParams ); break;
+      case kAnim_COUNT:            break;
+    }
+
+    animTimeLeft -= elapsed;
+
+  }
 
   // Has this animation expired?
   if( DO_TRANSITIONS && (animTimeLeft <= 0) ) {

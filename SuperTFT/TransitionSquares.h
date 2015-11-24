@@ -11,6 +11,8 @@ struct TransitionSquaresVars {
 };
 TransitionSquaresVars tsq = (TransitionSquaresVars){ 0 };
 
+const float TRANSITION_SQUARES_SPEED = 0.03;
+
 void transitionSquares_reset( ILI9341_t3 tft, uint_fast16_t inColor ) {
   //uint_fast16_t w = tft.width();
   //uint_fast16_t h = tft.height();
@@ -23,7 +25,7 @@ boolean transitionSquares_perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
   uint_fast16_t w = (uint_fast16_t)tft.width();
   uint_fast16_t h = (uint_fast16_t)tft.height();
 
-	tsq._phase += frameParams.timeMult * 0.01;
+	tsq._phase += frameParams.timeMult * TRANSITION_SQUARES_SPEED;
 
 	const uint_fast8_t SQ_SIZE = 40;
 	const uint_fast8_t size = SQ_SIZE * min( tsq._phase, 1.0f );

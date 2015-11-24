@@ -10,8 +10,9 @@ struct SquareVars {
   float _audioPeak;
   uint_fast8_t _ripplePos;
   uint_fast8_t _rippleSpeed;
+  uint_fast16_t _bgColor;
 };
-SquareVars sq = (SquareVars){0};
+SquareVars sq = (SquareVars){ 0 };
 
 const uint_fast8_t SQ_SPEED = 0x06;
 const uint_fast8_t SQ_SIZE = 16;
@@ -49,6 +50,12 @@ void magentaSquares_setup( ILI9341_t3 tft ) {
       radii[idx] = distanceMult * distance2D( ((float)i-sqAcross/2)*SQ_SIZE, ((float)j-sqDown/2)*SQ_SIZE );
     }
   }
+
+  sq._bgColor = tft.color565( 0x88, 0, 0x88 );
+}
+
+uint_fast16_t magentaSquares_bgColor(){
+	return sq._bgColor;
 }
 
 void magentaSquares_perFrame( ILI9341_t3 tft, FrameParams frameParams ) {

@@ -8,13 +8,20 @@
 struct WaveformVars {
   uint_fast16_t _step;
   uint_fast8_t _colorPhase;
+  uint_fast16_t _bgColor;
 };
-WaveformVars wv = (WaveformVars){0};
+WaveformVars wv = (WaveformVars){ 0, 0 };
 
 void waveform_setup( ILI9341_t3 tft ) {
   //uint_fast16_t w = tft.width();
   //uint_fast16_t h = tft.height();
   //tft.fillRect( 0, 0, w, h, 0x0 );
+
+  wv._bgColor = tft.color565( 0, 0, 0x55 );
+}
+
+uint_fast16_t waveform_bgColor(){
+	return wv._bgColor;
 }
 
 void waveform_perFrame( ILI9341_t3 tft, FrameParams frameParams ) {

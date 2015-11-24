@@ -11,12 +11,20 @@ const float SPHERE_3D_COLOR_SPEED = 0.013f;
 struct Sphere3DVars {
   float _rotatePhase;
 	float _colorPhase;
+
+  uint_fast16_t _bgColor;
 };
 Sphere3DVars s3d = (Sphere3DVars){ 0 };
 
 void sphere3D_setup( ILI9341_t3 tft ) {
   //uint_fast16_t w = tft.width();
   //uint_fast16_t h = tft.height();
+
+  s3d._bgColor = tft.color565( 0x18, 0, 0 );
+}
+
+uint_fast16_t sphere3D_bgColor(){
+	return s3d._bgColor;
 }
 
 void sphere3D_drawLine( ILI9341_t3 tft, float x, float y, float z, uint_fast16_t w_2, uint_fast16_t h_2, uint_fast16_t color ) {
@@ -28,9 +36,9 @@ void sphere3D_drawLine( ILI9341_t3 tft, float x, float y, float z, uint_fast16_t
 	tft.drawLine( innerPt.x, innerPt.y, outerPt.x, outerPt.y, color );
 
 	// Just for kicks... Let's draw some circumference lines
-	const float WHAT_AM_I_DOING = 0.1f;
-	Point16 p0 = xyz2screen( x-z*WHAT_AM_I_DOING, y, z+x*WHAT_AM_I_DOING + SPHERE_DISTANCE, w_2, h_2 );
-	Point16 p1 = xyz2screen( x+z*WHAT_AM_I_DOING, y, z-x*WHAT_AM_I_DOING + SPHERE_DISTANCE, w_2, h_2 );
+	const float T_BAR_RADIUS = 0.1f;
+	Point16 p0 = xyz2screen( x-z*T_BAR_RADIUS, y, z+x*T_BAR_RADIUS + SPHERE_DISTANCE, w_2, h_2 );
+	Point16 p1 = xyz2screen( x+z*T_BAR_RADIUS, y, z-x*T_BAR_RADIUS + SPHERE_DISTANCE, w_2, h_2 );
 	tft.drawLine( p0.x, p0.y, p1.x, p1.y, color );
 
 }
@@ -48,7 +56,7 @@ void sphere3D_perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
 
 	uint_fast8_t bright = (uint_fast8_t)( 0xff * (s3d._colorPhase - floor( s3d._colorPhase )) );
 	uint_fast16_t color = tft.color565( bright, bright, 0xff );
-	uint_fast16_t erase = tft.color565( 0, 0, 0 );
+	uint_fast16_t erase = s3d._bgColor;
 
 	float x, y, z, sinLat;
 

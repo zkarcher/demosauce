@@ -13,8 +13,9 @@ uint_fast8_t triWebPtsDown;
 
 struct TriangleWebVars {
   float _phase;
+  uint_fast16_t _bgColor;
 };
-TriangleWebVars triWeb = (TriangleWebVars){0};
+TriangleWebVars triWeb = (TriangleWebVars){ 0, 0 };
 
 void triangleWeb_setup( ILI9341_t3 tft ) {
   uint_fast16_t w = tft.width();
@@ -23,6 +24,12 @@ void triangleWeb_setup( ILI9341_t3 tft ) {
 
   triWebPtsAcross = w / WEB_POINT_SPACING + 1;
   triWebPtsDown = h / WEB_POINT_SPACING + 1;
+
+  triWeb._bgColor = tft.color565( 0x22, 0x22, 0x22 );
+}
+
+uint_fast16_t triangleWeb_bgColor(){
+	return triWeb._bgColor;
 }
 
 Point getWebPoint( uint_fast8_t i, uint_fast8_t j, float phase ) {

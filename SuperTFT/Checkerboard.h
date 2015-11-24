@@ -16,12 +16,19 @@ const float CHECKERBOARD_STRAFE_SPEED_Y = 0.0095;
 
 struct CheckerboardVars {
   float _phase;
+  uint_fast16_t _bgColor;
 };
 CheckerboardVars cb = (CheckerboardVars){ 0 };
 
 void checkerboard_setup( ILI9341_t3 tft ) {
   //uint_fast16_t w = tft.width();
   //uint_fast16_t h = tft.height();
+
+  cb._bgColor = tft.color565( 0xff, 0xcc, 0xcc );
+}
+
+uint_fast16_t checkerboard_bgColor(){
+	return cb._bgColor;
 }
 
 void checkerboard_perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
