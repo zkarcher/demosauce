@@ -12,7 +12,8 @@
 #include "Leaves.h"
 #include "MagentaSquares.h"
 #include "MicCheck.h"
-#include "Plasma.h"
+#include "PlasmaCloud.h"
+#include "PlasmaYellow.h"
 #include "Sphere3D.h"
 #include "TriangleWeb.h"
 #include "TwistyText.h"
@@ -21,7 +22,23 @@
 // Transitions
 #include "TransitionSquares.h"
 
-const boolean DO_TRANSITIONS = true; // dev: when hacking on one animation, set this to false
+enum animationType {
+  kAnimTwistyText = 0,
+  kAnimPlasmaCloud,
+  kAnimCheckerboard,
+  kAnimWaveform,
+  kAnimPlasmaYellow,
+  kAnimSphere3D,
+  kAnimMagentaSquares,
+  kAnimLeaves,
+  kAnimCube3D,
+  kAnimTriangleWeb,
+  kAnim_COUNT
+};
+
+const boolean DEBUG_MODE = true; // dev: for hacking on one animation
+const uint_fast8_t DEBUG_ANIMATION = kAnimPlasmaCloud;
+
 const int_fast16_t DEFAULT_ANIM_TIME = 10 * 1000;  // ms
 
 const uint8_t TFT_DC = 9;
@@ -31,19 +48,6 @@ const uint8_t TFT_CS = 10;
 ILI9341_t3 tft = ILI9341_t3(TFT_CS, TFT_DC);
 FrameParams frameParams;
 long previousMillis = 0;
-
-enum animationType {
-  kAnimTwistyText = 0,
-  kAnimCheckerboard,
-  kAnimWaveform,
-  kAnimPlasma,
-  kAnimSphere3D,
-  kAnimMagentaSquares,
-  kAnimLeaves,
-  kAnimCube3D,
-  kAnimTriangleWeb,
-  kAnim_COUNT
-};
 
 int_fast8_t activeAnim = -1;
 int_fast16_t animTimeLeft = DEFAULT_ANIM_TIME;
@@ -71,7 +75,8 @@ void setup() {
   tft.setColorSetDefault();
 
   // After rotation is set: Prepare animations
-  plasma_setup( tft );
+  plasmaCloud_setup( tft );
+  plasmaYellow_setup( tft );
   leaves_setup( tft );
   twistyText_setup( tft );
   checkerboard_setup( tft );
@@ -82,7 +87,11 @@ void setup() {
   sphere3D_setup( tft );
 
   if( activeAnim == -1 ) {
-    startAnimation( 0 );
+    if( DEBUG_MODE ) {
+      startAnimation( DEBUG_ANIMATION );
+    } else {
+      startAnimation( 0 );
+    }
   }
 }
 
@@ -96,7 +105,8 @@ int_fast16_t animationBGColor( int_fast8_t anim ){
     case kAnimTriangleWeb:      return triangleWeb_bgColor(); break;
     case kAnimCube3D:           return cube3D_bgColor(); break;
     case kAnimSphere3D:         return sphere3D_bgColor(); break;
-    case kAnimPlasma:           return plasma_bgColor(); break;
+    case kAnimPlasmaYellow:     return plasmaYellow_bgColor(); break;
+    case kAnimPlasmaCloud:      return plasmaCloud_bgColor(); break;
     default:                    return tft.color565( random(0xff), random(0xff), random(0xff) );
   }
   return 0x0;
@@ -164,7 +174,8 @@ void loop() {
       case kAnimTriangleWeb:       triangleWeb_perFrame( tft, frameParams ); break;
       case kAnimCube3D:            cube3D_perFrame( tft, frameParams ); break;
       case kAnimSphere3D:          sphere3D_perFrame( tft, frameParams ); break;
-      case kAnimPlasma:            plasma_perFrame( tft, frameParams ); break;
+      case kAnimPlasmaCloud:       plasmaCloud_perFrame( tft, frameParams ); break;
+      case kAnimPlasmaYellow:      plasmaYellow_perFrame( tft, frameParams ); break;
       case kAnim_COUNT:            break;
     }
 
@@ -178,7 +189,7 @@ void loop() {
     canTransition = twistyText_isComplete();
   }
 
-  if( DO_TRANSITIONS && canTransition && (animTimeLeft <= 0) ) {
+  if( !DEBUG_MODE && canTransition && (animTimeLeft <= 0) ) {
 
     // If the transition has not started yet, then start it.
     if( !isTransition ) {

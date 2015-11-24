@@ -10,7 +10,7 @@ const uint_fast8_t TEXT_PIXEL_WIDTH = 4;
 const float TEXT_PIXEL_HEIGHT = 12.0f;
 const float TEXT_3D_THICKNESS_MULT = 2.0f;
 
-const float TEXT_SPIN_SPEED = 0.005f;
+const float LINE_SCROLL_SPEED = 0.004f;
 const float TWIST_AMOUNT = -0.0063f;
 
 const float WOBBLE_FREQ = 2.5f;
@@ -62,7 +62,7 @@ void twistyText_perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
 	paddingLeft += TEXT_PIXEL_WIDTH;	// Because each character has 2 empty cols on the right
 	uint_fast16_t h_2 = (h>>1);
 
-	tt._phase += frameParams.timeMult * TEXT_SPIN_SPEED;
+	tt._phase += frameParams.timeMult * LINE_SCROLL_SPEED;
 
 	for( uint_fast8_t c=0; c<(CHARS_PER_LINE*7); c++ ) {
 		uint_fast8_t columnInChar = c % 7;
