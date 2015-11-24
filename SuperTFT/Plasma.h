@@ -56,7 +56,9 @@ void plasma_perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
 			//uint_fast16_t distance = abs( d0.x*d0.y );	// pretty good
 			uint_fast16_t distance = abs( d0.x*d0.y + d1.x*d1.y );
 
-			uint_fast8_t bright = lerp8( (uint_fast16_t)(distance >> 4) & 0xff, 0xff, audioPower );
+			uint_fast8_t bright = lerp8( (uint_fast16_t)(distance >> 5) & 0xff, 0xff, audioPower );
+			if( bright > 0x7f ) bright = 0xff - bright;
+			bright <<= 2;
 
 			uint_fast16_t color = tft.color565( bright, bright, 0 );
 
