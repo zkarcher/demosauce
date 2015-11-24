@@ -11,12 +11,16 @@ const float TEXT_PIXEL_HEIGHT = 12.0f;
 const float TEXT_3D_THICKNESS_MULT = 2.0f;
 
 const float TEXT_SPIN_SPEED = 0.005f;
-const float TWIST_AMOUNT = 0.02f;
+const float TWIST_AMOUNT = 0.0043f;
+
+const float WOBBLE_FREQ = 2.2f;
+const float WOBBLE_AMOUNT = 0.5f;
+const float WOBBLE_TORQUE = 0.13f;
 
 const uint_fast8_t LINE_COUNT = 4;
 const uint_fast8_t CHARS_PER_LINE = 10;
 //                    0.........10........20........30........
-const char LINES[] = "HYDRONICS + ZKARCHER  PRESENT:SUPER-TFT!";
+const char LINES[] = "HYDRONICS + ZKARCHER PRESENT: SUPER-TFT!";
 
 // This function (which actually gets 'inlined' anywhere it's called)
 // exists so that gammaTable can reside out of the way down here in the
@@ -57,7 +61,28 @@ void twistyText_perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
 		uint_fast8_t charInLine = (c / 7);
 
 		// Get the angle of rotation
-		float angle = (tt._phase * M_PI) + c*TWIST_AMOUNT;
+		float angle = (tt._phase + c*TWIST_AMOUNT);
+
+		// I want to pause so the user can read each line, so add some easing to hang out at
+		// (angle%1.0)==0.5.
+		float angleFloor = floor(angle);
+		float decimal = angle - angleFloor;
+		if( decimal < 0.5f ) {
+			float inverse = (0.5f-decimal) * 2.0f;	// 1..0
+			inverse *= (inverse*inverse);
+			angle = angleFloor + (1.0f-inverse)*0.5f;
+
+		} else {
+			float ramp = (decimal*2.0f) - 1.0f;	// 0..1
+			ramp *= (ramp*ramp);
+			angle = angleFloor + 0.5f + ramp*0.5f;
+		}
+
+		angle *= M_PI;
+
+		// Add wiggly wobble
+		angle += sin( tt._phase*M_PI*WOBBLE_FREQ + (c*WOBBLE_TORQUE) ) * WOBBLE_AMOUNT;
+
 		uint_fast16_t wrapAmt = floor( angle / M_PI );
 		angle -= wrapAmt * M_PI;
 
