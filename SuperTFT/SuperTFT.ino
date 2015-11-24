@@ -26,20 +26,20 @@ enum animationType {
   kAnimTwistyText = 0,
   kAnimPlasmaCloud,
   kAnimWaveform,
+  kAnimMagentaSquares,
+  kAnimSphere3D,
   kAnimCheckerboard,
+  kAnimLeaves,
   kAnimCube3D,
   kAnimPlasmaYellow,
-  kAnimMagentaSquares,
-  kAnimLeaves,
   kAnimTriangleWeb,
-  kAnimSphere3D,
   kAnim_COUNT
 };
 
-const boolean DEBUG_MODE = false; // dev: for hacking on one animation
-const uint_fast8_t DEBUG_ANIMATION = kAnimPlasmaCloud;
+const boolean DEBUG_MODE = true; // dev: for hacking on one animation
+const uint_fast8_t DEBUG_ANIMATION = kAnimSphere3D;
 
-const int_fast16_t DEFAULT_ANIM_TIME = 10 * 1000;  // ms
+const int_fast16_t DEFAULT_ANIM_TIME = 20 * 1000;  // ms
 
 const uint8_t TFT_DC = 9;
 const uint8_t TFT_CS = 10;
@@ -143,6 +143,8 @@ void loop() {
     sum += sample;
   }
   frameParams.audioMean = sum * (1.0 / (512*SAMPLES_PER_FRAME));  // Range: 0..1
+
+  frameParams.audioPeak = min( (uint_fast16_t)frameParams.audioPeak, (uint_fast16_t)511 );
 
   // TESTING:
   //micCheck_perFrame( tft, frameParams );

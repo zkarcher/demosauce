@@ -61,6 +61,7 @@ void leaves_perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
   uint_fast16_t solidColor = tft.color565( 0xff, bright, bright );  // red
   uint_fast16_t outlineColor = tft.color565( bright, bright, bright ); // grey
   drawLeaves( tft, false, LV_ITERS, LV_SPREAD_RADIUS, lv._phase, w/2, h/2, solidColor, outlineColor );
+
 }
 
 #endif

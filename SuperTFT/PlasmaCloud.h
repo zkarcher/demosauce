@@ -26,7 +26,7 @@ uint_fast8_t sqrtTable[ SQRT_TABLE_LENGTH ];
 uint_fast8_t sqrtBitShift;	// Shift distances (integers) this many bits. This will give you a lookup index to get the square root.
 
 void plasmaCloud_setup( ILI9341_t3 tft ) {
-	pc._bgColor = tft.color565( 0, 0xff, 0 );
+	pc._bgColor = tft.color565( 0x77, 0, 0xcc );
 
   float w = (float)tft.width();
   float h = (float)tft.height();
