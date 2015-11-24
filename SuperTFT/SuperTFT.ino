@@ -21,7 +21,7 @@
 // Transitions
 #include "TransitionSquares.h"
 
-const boolean DO_TRANSITIONS = true; // dev: when hacking on one animation, set this to false
+const boolean DO_TRANSITIONS = false; // dev: when hacking on one animation, set this to false
 const int_fast16_t DEFAULT_ANIM_TIME = 10 * 1000;  // ms
 
 const uint8_t TFT_DC = 9;
@@ -33,12 +33,12 @@ FrameParams frameParams;
 long previousMillis = 0;
 
 enum animationType {
-  kAnimTwistyText = 0,
+  kAnimTriangleWeb = 0,
+  kAnimTwistyText,
   kAnimCheckerboard,
   kAnimMagentaSquares,
   kAnimLeaves,
   kAnimWaveform,
-  kAnimTriangleWeb,
   kAnimCube3D,
   kAnimSphere3D,
   kAnim_COUNT
@@ -105,6 +105,11 @@ void startAnimation( int_fast8_t anim ) {
   activeAnim = anim;
   animTimeLeft = DEFAULT_ANIM_TIME;
   tft.fillScreen( animationBGColor( activeAnim ) );
+
+  switch( activeAnim ) {
+    case kAnimTwistyText:       twistyText_reset( tft ); break;
+    default:                    break;
+  }
 }
 
 void loop() {
@@ -164,7 +169,12 @@ void loop() {
   }
 
   // Has this animation expired?
-  if( DO_TRANSITIONS && (animTimeLeft <= 0) ) {
+  boolean canTransition = true;
+  if( activeAnim == kAnimTwistyText ) {
+    canTransition = twistyText_isComplete();
+  }
+
+  if( DO_TRANSITIONS && canTransition && (animTimeLeft <= 0) ) {
 
     // If the transition has not started yet, then start it.
     if( !isTransition ) {

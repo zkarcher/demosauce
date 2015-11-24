@@ -39,7 +39,7 @@ void leaves_setup( ILI9341_t3 tft ) {
   //uint_fast16_t w = tft.width();
   //uint_fast16_t h = tft.height();
 
-  lv._bgColor = tft.color565( 0xbb, 0, 0 );
+  lv._bgColor = 0x780f;
 }
 
 uint_fast16_t leaves_bgColor(){

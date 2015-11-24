@@ -11,7 +11,8 @@ struct TransitionSquaresVars {
 };
 TransitionSquaresVars tsq = (TransitionSquaresVars){ 0 };
 
-const float TRANSITION_SQUARES_SPEED = 0.03;
+const float TRANSITION_SQUARES_SPEED = 0.06;
+const float TRANSITION_SQUARES_SLOPE = 0.05f;
 
 void transitionSquares_reset( ILI9341_t3 tft, uint_fast16_t inColor ) {
   //uint_fast16_t w = tft.width();
@@ -27,17 +28,25 @@ boolean transitionSquares_perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
 
 	tsq._phase += frameParams.timeMult * TRANSITION_SQUARES_SPEED;
 
-	const uint_fast8_t SQ_SIZE = 40;
-	const uint_fast8_t size = SQ_SIZE * min( tsq._phase, 1.0f );
+	const uint_fast8_t SQ_SIZE = 30;
+  boolean anySmallSquares = false;
 
 	// Draw squares, offset so squares grow out from center
-	for( uint_fast16_t x=((SQ_SIZE-size)>>1); x<w; x+=SQ_SIZE ) {
-		for( uint_fast16_t y=((SQ_SIZE-size)>>1); y<h; y+=SQ_SIZE ) {
-			tft.fillRect( x, y, size, size, tsq._color );
-		}
-	}
+  uint_fast8_t across = w / SQ_SIZE + 1;
+  uint_fast8_t down = h / SQ_SIZE + 1;
+  for( uint_fast8_t i=0; i<across; i++ ) {
+    for( uint_fast8_t j=0; j<down; j++ ) {
 
-	return (tsq._phase >= 1.0f);
+      uint_fast8_t size = SQ_SIZE * constrain( tsq._phase - (i+j)*TRANSITION_SQUARES_SLOPE, 0.0f, 1.0f );
+      if( size < SQ_SIZE ) anySmallSquares = true;
+
+      // Squares should grow out from center
+      tft.fillRect( (i+0.5f)*SQ_SIZE - (size>>1), (j+0.5f)*SQ_SIZE - (size>>1), size, size, tsq._color );
+    }
+  }
+
+  // When all squares are full-size, the transition is done!
+	return !anySmallSquares;
 }
 
 #endif

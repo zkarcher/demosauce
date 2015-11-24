@@ -29,16 +29,25 @@ const char LINES[] = "HYDRONICS + ZKARCHER PRESENT: SUPER-TFT!";
 // the compiler permits forward references to functions but not data.
 
 struct TwistyTextVars {
+	float _initPhase;
   float _phase;
 	uint_fast16_t _bgColor;
 };
-TwistyTextVars tt = (TwistyTextVars){ LINE_COUNT };
+TwistyTextVars tt = (TwistyTextVars){ 0 };
 
 void twistyText_setup( ILI9341_t3 tft ) {
   //uint_fast16_t w = tft.width();
   //uint_fast16_t h = tft.height();
 
 	tt._bgColor = tft.color565( 0x0, 0x0, 0x33 );
+}
+
+void twistyText_reset( ILI9341_t3 tft ) {
+	tt._phase = tt._initPhase = LINE_COUNT * random(999);
+}
+
+boolean twistyText_isComplete(){
+	return tt._phase > (tt._initPhase + LINE_COUNT);
 }
 
 uint_fast16_t twistyText_bgColor(){
@@ -77,6 +86,11 @@ void twistyText_perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
 			float ramp = (decimal*2.0f) - 1.0f;	// 0..1
 			ramp *= (ramp*ramp);
 			angle = angleFloor + 0.5f + ramp*0.5f;
+		}
+
+		// Hang on the final line, "SUPER-TFT". Don't roll over to the first line.
+		if( angle > tt._initPhase + LINE_COUNT - 0.5f ) {
+			angle = tt._initPhase + LINE_COUNT - 0.5f;
 		}
 
 		angle *= M_PI;

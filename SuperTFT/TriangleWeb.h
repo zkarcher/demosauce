@@ -55,8 +55,14 @@ void triangleWeb_perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
   uint_fast8_t bright = (frameParams.audioPeak >> 1); // 0..512 -> 0..255
   uint_fast16_t color = tft.color565( bright, bright, bright );
 
-  // TODO: It is possible to re-use some Point's here
+  // When dark: Always illuminate one "lucky" line at random
+  uint_fast16_t luckyLine = random( triWebPtsAcross * triWebPtsDown * 3 );
+  uint_fast8_t luckyBright = random( 0x11, 0x55 );
+  uint_fast16_t luckyColor = tft.color565( luckyBright, luckyBright, luckyBright );
+
+  // It is possible to re-use some Point's here. TODO?
   Point nw, ne, sw;
+  uint_fast16_t luckyIdx = 0;
   for( uint_fast8_t i=0; i<triWebPtsAcross; i++ ) {
     nw = getWebPoint( i, 0, triWeb._phase );
 
@@ -64,9 +70,19 @@ void triangleWeb_perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
       ne = getWebPoint( i+1, j, triWeb._phase );
       sw = getWebPoint( i, j+1, triWeb._phase );
 
-      tft.drawLine( nw.x, nw.y, ne.x, ne.y, color );
-      tft.drawLine( nw.x, nw.y, sw.x, sw.y, color );
-      tft.drawLine( ne.x, ne.y, sw.x, sw.y, color );
+      uint_fast16_t useColor;
+
+      useColor = (luckyIdx==luckyLine) ? luckyColor : color;
+      tft.drawLine( nw.x, nw.y, ne.x, ne.y, useColor );
+      luckyIdx++;
+
+      useColor = (luckyIdx==luckyLine) ? luckyColor : color;
+      tft.drawLine( nw.x, nw.y, sw.x, sw.y, useColor );
+      luckyIdx++;
+
+      useColor = (luckyIdx==luckyLine) ? luckyColor : color;
+      tft.drawLine( ne.x, ne.y, sw.x, sw.y, useColor );
+      luckyIdx++;
 
       // Re-use sw point as new nw
       nw = sw;
