@@ -11,6 +11,11 @@ struct PointU16 {
 	uint_fast16_t y;
 };
 
+struct PointU8 {
+	uint_fast8_t x;
+	uint_fast8_t y;
+};
+
 struct PointF {
 	float x;
 	float y;

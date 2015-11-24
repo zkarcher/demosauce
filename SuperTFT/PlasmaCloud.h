@@ -6,12 +6,16 @@
 #include "MathUtil.h"
 
 const float PLASMA_CLOUD_SPEED = 0.02;
-const uint_fast8_t PLASMA_CLOUD_DITHER = 4;
 const uint_fast16_t PLASMA_CLOUD_MARGIN = 25;
+
+const uint_fast8_t PLASMA_CLOUD_LINE_WIDTH = 8;
+const uint_fast8_t PLASMA_CLOUD_STEP_Y = 4;
+
+const float PLASMA_COLOR_CYCLE_SPEED = 0.003;
 
 struct PlasmaCloudVars {
   float _phase;
-	uint_fast8_t _ditherX;
+	float _colorCycle;
 	uint_fast8_t _ditherY;
   uint_fast16_t _bgColor;
 };
@@ -51,54 +55,40 @@ void plasmaCloud_perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
   uint_fast16_t h = (int_fast16_t)tft.height();
 
 	pc._phase += frameParams.timeMult * PLASMA_CLOUD_SPEED;
+	pc._colorCycle -= frameParams.timeMult * PLASMA_COLOR_CYCLE_SPEED;
+	if( pc._colorCycle <= 0.0f ) pc._colorCycle += 1.0f;
+
+	uint_fast8_t colorAdd = pc._colorCycle * 0xff;
 
 	//py._ditherY = (py._ditherY + 1) % PLASMA_YELLOW_DITHER;
 
 	PointU16 p0 = (PointU16){
-		(uint_fast16_t)(w/2 + (sin(pc._phase*0.57f)*(w/2-PLASMA_CLOUD_MARGIN) )),
+		(uint_fast16_t)(w/2 + (sin(pc._phase*0.32f)*(w/2-PLASMA_CLOUD_MARGIN) )),
 		(uint_fast16_t)(h/2 + (sin(pc._phase*0.23f)*(h/2-PLASMA_CLOUD_MARGIN) ))
 	};
-	/*
 	PointU16 p1 = (PointU16){
-		(uint_fast16_t)(w/2 + (cos(pc._phase*0.78f)*(w/2-PLASMA_CLOUD_MARGIN) )),
-		(uint_fast16_t)(h/2 + (cos(pc._phase*0.42f)*(h/2-PLASMA_CLOUD_MARGIN) ))
+		(uint_fast16_t)(w/2 + (cos(pc._phase*1.07f)*(w/2-PLASMA_CLOUD_MARGIN) )),
+		(uint_fast16_t)(h/2 + (cos(pc._phase*1.42f)*(h/2-PLASMA_CLOUD_MARGIN) ))
 	};
-	*/
 
-	for( uint_fast16_t x=0; x<w; x++ ) {
-		for( uint_fast16_t y=0; y<w; y++ ) {
-			PointU16 d0 = (PointU16){ p0.x - x, p0.y - y };
-			//Point16 d1 = (Point16){ p1.x - x, p1.y - y };
+	for( uint_fast16_t x=0; x<w; x+=PLASMA_CLOUD_LINE_WIDTH ) {
+		for( uint_fast16_t y=pc._ditherY; y<h; y+=PLASMA_CLOUD_STEP_Y ) {
+			PointU8 d0 = (PointU8){ abs(p0.x - x), abs(p0.y - y) };
+			PointU8 d1 = (PointU8){ abs(p1.x - x), abs(p1.y - y) };
 
-			uint_fast8_t distanceLookup = ((d0.x*d0.x)>>sqrtBitShift) + ((d0.y*d0.y)>>sqrtBitShift);
-			uint_fast8_t aSqrt = sqrtTable[ distanceLookup ];
+			uint_fast8_t lookup0 = (d0.x*d0.x + d0.y*d0.y) >> sqrtBitShift;
+			uint_fast8_t lookup1 = (d1.x*d1.x + d1.y*d1.y) >> sqrtBitShift;
 
-			uint_fast16_t color = tft.color565( aSqrt, ((aSqrt&0xfb)<<2), 0 );
-			tft.drawPixel( x, y, color );
+			uint_fast8_t bright = (sqrtTable[ lookup0 ] * sqrtTable[ lookup1 ]) >> 6;
+			bright = (uint_fast16_t)(bright + colorAdd) & 0xff;
+
+			uint_fast16_t color = tft.color565( ((bright&0xfb)<<2), 0, bright );
+			tft.drawFastHLine( x, y, PLASMA_CLOUD_LINE_WIDTH, color );
 		}
 	}
 
-	//float audioPower = frameParams.audioMean;
-	/*
-	for( int_fast16_t x=0; x<w; x+=PLASMA_CLOUD_DITHER ) {
-		for( int_fast16_t y=py._ditherY; y<h; y+=PLASMA_CLOUD_DITHER ) {
-			Point16 d0 = (Point16){ p0.x - x, p0.y - y };
-			Point16 d1 = (Point16){ p1.x - x, p1.y - y };
+	pc._ditherY = (pc._ditherY + 1) % PLASMA_CLOUD_STEP_Y;
 
-			//uint_fast16_t distance = sqrt( d0.x*d0.x + d0.y*d0.y );// * sqrt( d1.x*d1.x + d1.y*d1.y );	// SLOW
-			//uint_fast16_t distance = abs( d0.x*d0.y );	// pretty good
-			uint_fast16_t distance = abs( d0.x*d0.y + d1.x*d1.y );
-
-			uint_fast8_t bright = lerp8( (uint_fast16_t)(distance >> 5) & 0xff, 0xff, audioPower );
-			if( bright > 0x7f ) bright = 0xff - bright;
-			bright <<= 2;
-
-			uint_fast16_t color = tft.color565( bright, bright, 0 );
-
-			tft.drawFastHLine( x, y, PLASMA_YELLOW_DITHER, color );
-		}
-	}
-	*/
 }
 
 #endif
