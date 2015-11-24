@@ -11,11 +11,11 @@ const float TEXT_PIXEL_HEIGHT = 12.0f;
 const float TEXT_3D_THICKNESS_MULT = 2.0f;
 
 const float TEXT_SPIN_SPEED = 0.005f;
-const float TWIST_AMOUNT = 0.0043f;
+const float TWIST_AMOUNT = -0.0063f;
 
-const float WOBBLE_FREQ = 2.2f;
-const float WOBBLE_AMOUNT = 0.5f;
-const float WOBBLE_TORQUE = 0.13f;
+const float WOBBLE_FREQ = 2.5f;
+const float WOBBLE_AMOUNT = 0.35f;
+const float WOBBLE_TORQUE = -0.19f;
 
 const uint_fast8_t LINE_COUNT = 4;
 const uint_fast8_t CHARS_PER_LINE = 10;
@@ -32,13 +32,13 @@ struct TwistyTextVars {
   float _phase;
 	uint_fast16_t _bgColor;
 };
-TwistyTextVars tt = (TwistyTextVars){ 0 };
+TwistyTextVars tt = (TwistyTextVars){ LINE_COUNT };
 
 void twistyText_setup( ILI9341_t3 tft ) {
   //uint_fast16_t w = tft.width();
   //uint_fast16_t h = tft.height();
 
-	tt._bgColor = tft.color565( 0, 0, 0x66 );
+	tt._bgColor = tft.color565( 0x0, 0x0, 0x33 );
 }
 
 uint_fast16_t twistyText_bgColor(){
@@ -49,7 +49,8 @@ void twistyText_perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
   uint_fast16_t w = (uint_fast16_t)tft.width();
   uint_fast16_t h = (uint_fast16_t)tft.height();
 
-	uint_fast16_t paddingLeft = (w - CHARS_PER_LINE * TEXT_PIXEL_WIDTH * 7) >> 1;
+	uint_fast16_t paddingLeft = ((w - CHARS_PER_LINE * TEXT_PIXEL_WIDTH * 7) >> 1);
+	paddingLeft += TEXT_PIXEL_WIDTH;	// Because each character has 2 empty cols on the right
 	uint_fast16_t h_2 = (h>>1);
 
 	tt._phase += frameParams.timeMult * TEXT_SPIN_SPEED;
@@ -116,10 +117,18 @@ void twistyText_perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
 		float cosAngleNorm = (cosAngle+1.0)*0.5f;
 		float sinAngle = sin( angle );
 
+		uint_fast16_t baseColor;
+		switch( lineIdx ) {
+			case 0:    baseColor = 0x44ffff; break;	// "HYDRONICS"
+			case 1:    baseColor = 0xffff44; break; // "+ ZKARCHER"
+			case 2:    baseColor = 0xff88ff; break; // "PRESENT"
+			default:   baseColor = 0x88ffbb; break; // "SUPER-TFT!";
+		}
+
 		uint_fast16_t color = tft.color565(
-			lerp8( 0x33, 0x88, cosAngleNorm ),
-			lerp8( 0x44, 0xff, cosAngleNorm ),
-			lerp8( 0x44, 0xbb, cosAngleNorm )
+			lerp8( 0x33, (baseColor&0xff0000)>>16, cosAngleNorm ),
+			lerp8( 0x44, (baseColor&0x00ff00)>>8,  cosAngleNorm ),
+			lerp8( 0x44, (baseColor&0x0000ff),     cosAngleNorm )
 		);
 
 		uint_fast16_t sideColor = tft.color565( 0xff * cosAngleAbs, 0x88 * cosAngleAbs, 0 );
