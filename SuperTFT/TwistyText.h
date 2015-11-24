@@ -50,8 +50,8 @@ const uint_fast8_t PROGMEM TEXT_TABLE[]  = {
 };
 uint_fast8_t TEXT_TABLE_LENGTH = sizeof( TEXT_TABLE ) / sizeof( uint_fast8_t );
 
-const uint_fast8_t TEXT_PIXEL_WIDTH = 6;
-const float TEXT_PIXEL_HEIGHT = 16.0f;
+const uint_fast8_t TEXT_PIXEL_WIDTH = 7;
+const float TEXT_PIXEL_HEIGHT = 18.0f;
 const float TEXT_3D_THICKNESS_MULT = 2.0f;
 
 const float TEXT_SPIN_SPEED = 0.007f;
@@ -82,6 +82,8 @@ void twistyText_perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
 	tt._phase += frameParams.timeMult * TEXT_SPIN_SPEED;
 	if( tt._phase > 1.0f ) tt._phase -= 1.0f;
 
+	uint_fast16_t bgColor = tft.color565( 0, 0, 0x66 );
+
 	for( uint_fast8_t c=0; c<TEXT_TABLE_LENGTH; c++ ) {
 		uint_fast8_t colByte = pgm_read_byte(&TEXT_TABLE[c]);
 		if( colByte == 0 ) continue;	// Premature optimization: Skip empty columns
@@ -89,7 +91,7 @@ void twistyText_perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
 		uint_fast16_t left = c * TEXT_PIXEL_WIDTH;
 
 		// Erase the background
-		tft.fillRect( left, h_2 - 5*TEXT_PIXEL_HEIGHT, TEXT_PIXEL_WIDTH, 10*TEXT_PIXEL_HEIGHT, 0x0 );
+		uint_fast16_t eraseTop = h_2 - 4.5*TEXT_PIXEL_HEIGHT;
 
 		float angle = (tt._phase * M_PI) + c*TWIST_AMOUNT;
 
@@ -133,15 +135,28 @@ void twistyText_perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
 
 				// Draw the "side" hanging below, or above, depending on the twist angle
 				if( cosAngle > 0.0f ) {
-					// Below: (text is facing up)
+					// Side protudes below: (text is facing up)
 					tft.fillRect( left, top+height, TEXT_PIXEL_WIDTH, sideHeight, sideColor );
+
+					// Erase above
+					tft.fillRect( left, eraseTop, TEXT_PIXEL_WIDTH, top-eraseTop, bgColor );
+					eraseTop = top + height + sideHeight;
+
 				} else {
-					// Above: (text is facing down)
+					// Side protrudes above: (text is facing down)
 					tft.fillRect( left, top-sideHeight, TEXT_PIXEL_WIDTH, sideHeight, sideColor );
+
+					// Erase above
+					tft.fillRect( left, eraseTop, TEXT_PIXEL_WIDTH, (top-sideHeight)-eraseTop, bgColor );
+					eraseTop = top + height;
 				}
 			}
 		}
-	}
+
+		// Erase old graphics below the column
+		tft.fillRect( left, eraseTop, TEXT_PIXEL_WIDTH, (h_2+4.5*TEXT_PIXEL_HEIGHT)-eraseTop, bgColor );
+
+	}	// end each column
 
 }
 
