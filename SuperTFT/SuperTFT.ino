@@ -21,7 +21,7 @@
 // Transitions
 #include "TransitionSquares.h"
 
-const boolean DO_TRANSITIONS = false; // dev: when hacking on one animation, set this to false
+const boolean DO_TRANSITIONS = true; // dev: when hacking on one animation, set this to false
 const int_fast16_t DEFAULT_ANIM_TIME = 10 * 1000;  // ms
 
 const uint8_t TFT_DC = 9;
@@ -33,11 +33,11 @@ FrameParams frameParams;
 long previousMillis = 0;
 
 enum animationType {
-  kAnimPlasma = 0,
-  kAnimTwistyText,
+  kAnimTwistyText = 0,
   kAnimCheckerboard,
-  kAnimSphere3D,
   kAnimWaveform,
+  kAnimPlasma,
+  kAnimSphere3D,
   kAnimMagentaSquares,
   kAnimLeaves,
   kAnimCube3D,
