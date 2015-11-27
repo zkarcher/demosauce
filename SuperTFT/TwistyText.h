@@ -5,6 +5,8 @@
 #include "ILI9341_t3.h"
 #include "MathUtil.h"
 #include "TwistyTextFont.h"
+#include "BaseAnimation.h"
+
 
 const uint_fast8_t TEXT_PIXEL_WIDTH = 4;
 const float TEXT_PIXEL_HEIGHT = 12.0f;
@@ -17,52 +19,49 @@ const float WOBBLE_FREQ = 2.5f;
 const float WOBBLE_AMOUNT = 0.35f;
 const float WOBBLE_TORQUE = -0.19f;
 
-const uint_fast8_t LINE_COUNT = 4;
-const uint_fast8_t CHARS_PER_LINE = 10;
 //                    0.........10........20........30........
 const char LINES[] = "HYDRONICS + ZKARCHER PRESENT: SUPER-TFT!";
+const uint_fast8_t LINE_COUNT = 4;
+const uint_fast8_t CHARS_PER_LINE = 10;
 
-// This function (which actually gets 'inlined' anywhere it's called)
-// exists so that gammaTable can reside out of the way down here in the
-// utility code...didn't want that huge table distracting or intimidating
-// folks before even getting into the real substance of the program, and
-// the compiler permits forward references to functions but not data.
 
-struct TwistyTextVars {
+class TwistyText : public BaseAnimation {
+public:
+	TwistyText() : BaseAnimation() {};
+
+	void init( ILI9341_t3 tft );
+	uint_fast16_t bgColor( void );
+	void reset( ILI9341_t3 tft );
+	void perFrame( ILI9341_t3 tft, FrameParams frameParams );
+	boolean canTransition( void );
+
+private:
 	float _initPhase;
-  float _phase;
+	float _phase;
 	uint_fast16_t _bgColor;
 };
-TwistyTextVars tt = (TwistyTextVars){ 0 };
 
-void twistyText_setup( ILI9341_t3 tft ) {
-  //uint_fast16_t w = tft.width();
-  //uint_fast16_t h = tft.height();
-
-	tt._bgColor = tft.color565( 0x0, 0x0, 0x33 );
+void TwistyText::init( ILI9341_t3 tft ) {
+	_bgColor = tft.color565( 0x0, 0x0, 0x33 );
 }
 
-void twistyText_reset( ILI9341_t3 tft ) {
-	tt._phase = tt._initPhase = LINE_COUNT * random(999);
+uint_fast16_t TwistyText::bgColor( void ) {
+	return _bgColor;
 }
 
-boolean twistyText_isComplete(){
-	return tt._phase > (tt._initPhase + LINE_COUNT);
+void TwistyText::reset( ILI9341_t3 tft ) {
+	_phase = _initPhase = LINE_COUNT * random(999);
 }
 
-uint_fast16_t twistyText_bgColor(){
-	return tt._bgColor;
-}
-
-void twistyText_perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
-  uint_fast16_t w = (uint_fast16_t)tft.width();
+void TwistyText::perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
+	uint_fast16_t w = (uint_fast16_t)tft.width();
   uint_fast16_t h = (uint_fast16_t)tft.height();
 
 	uint_fast16_t paddingLeft = ((w - CHARS_PER_LINE * TEXT_PIXEL_WIDTH * 7) >> 1);
 	paddingLeft += TEXT_PIXEL_WIDTH;	// Because each character has 2 empty cols on the right
 	uint_fast16_t h_2 = (h>>1);
 
-	tt._phase += frameParams.timeMult * LINE_SCROLL_SPEED;
+	_phase += frameParams.timeMult * LINE_SCROLL_SPEED;
 
 	for( uint_fast8_t c=0; c<(CHARS_PER_LINE*7); c++ ) {
 		uint_fast8_t columnInChar = c % 7;
@@ -71,7 +70,7 @@ void twistyText_perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
 		uint_fast8_t charInLine = (c / 7);
 
 		// Get the angle of rotation
-		float angle = (tt._phase + c*TWIST_AMOUNT);
+		float angle = (_phase + c*TWIST_AMOUNT);
 
 		// I want to pause so the user can read each line, so add some easing to hang out at
 		// (angle%1.0)==0.5.
@@ -89,14 +88,14 @@ void twistyText_perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
 		}
 
 		// Hang on the final line, "SUPER-TFT". Don't roll over to the first line.
-		if( angle > tt._initPhase + LINE_COUNT - 0.5f ) {
-			angle = tt._initPhase + LINE_COUNT - 0.5f;
+		if( angle > _initPhase + LINE_COUNT - 0.5f ) {
+			angle = _initPhase + LINE_COUNT - 0.5f;
 		}
 
 		angle *= M_PI;
 
 		// Add wiggly wobble
-		angle += sin( tt._phase*M_PI*WOBBLE_FREQ + (c*WOBBLE_TORQUE) ) * WOBBLE_AMOUNT;
+		angle += sin( _phase*M_PI*WOBBLE_FREQ + (c*WOBBLE_TORQUE) ) * WOBBLE_AMOUNT;
 
 		uint_fast16_t wrapAmt = floor( angle / M_PI );
 		angle -= wrapAmt * M_PI;
@@ -175,7 +174,7 @@ void twistyText_perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
 					tft.fillRect( left, top+height, TEXT_PIXEL_WIDTH, sideHeight, sideColor );
 
 					// Erase above
-					tft.fillRect( left, eraseTop, TEXT_PIXEL_WIDTH, top-eraseTop, tt._bgColor );
+					tft.fillRect( left, eraseTop, TEXT_PIXEL_WIDTH, top-eraseTop, _bgColor );
 					eraseTop = top + height + sideHeight;
 
 				} else {
@@ -187,17 +186,22 @@ void twistyText_perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
 					}
 
 					// Erase above
-					tft.fillRect( left, eraseTop, TEXT_PIXEL_WIDTH, (top-sideHeight)-eraseTop, tt._bgColor );
+					tft.fillRect( left, eraseTop, TEXT_PIXEL_WIDTH, (top-sideHeight)-eraseTop, _bgColor );
 					eraseTop = top + height;
 				}
 			}
 		}
 
 		// Erase old graphics below the column
-		tft.fillRect( left, eraseTop, TEXT_PIXEL_WIDTH, (h_2+4.5*TEXT_PIXEL_HEIGHT)-eraseTop, tt._bgColor );
+		tft.fillRect( left, eraseTop, TEXT_PIXEL_WIDTH, (h_2+4.5*TEXT_PIXEL_HEIGHT)-eraseTop, _bgColor );
 
 	}	// end each column
 
+}
+
+boolean TwistyText::canTransition( void ) {
+	// After all 4 lines are shown, we can transition.
+	return _phase > (_initPhase + LINE_COUNT);
 }
 
 #endif

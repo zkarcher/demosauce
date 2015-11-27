@@ -1,5 +1,5 @@
-#ifndef FRAMEPARAMS_H__
-#define FRAMEPARAMS_H__
+#ifndef FRAME_PARAMS_H__
+#define FRAME_PARAMS_H__
 
 struct FrameParams {
   uint_fast16_t audioPeak;  // range: 0..512
