@@ -32,8 +32,11 @@ public:
 	void init( ILI9341_t3 tft );
 	uint_fast16_t bgColor( void );
 	void reset( ILI9341_t3 tft );
+
+	boolean willForceTransition( void );
+	boolean forceTransitionNow( void );
+
 	void perFrame( ILI9341_t3 tft, FrameParams frameParams );
-	boolean canTransition( void );
 
 private:
 	float _initPhase;
@@ -51,6 +54,14 @@ uint_fast16_t TwistyText::bgColor( void ) {
 
 void TwistyText::reset( ILI9341_t3 tft ) {
 	_phase = _initPhase = LINE_COUNT * random(999);
+}
+
+boolean TwistyText::willForceTransition( void ) {
+	return true;
+}
+
+boolean TwistyText::forceTransitionNow( void ) {
+	return _phase > (_initPhase + LINE_COUNT);
 }
 
 void TwistyText::perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
@@ -197,11 +208,6 @@ void TwistyText::perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
 
 	}	// end each column
 
-}
-
-boolean TwistyText::canTransition( void ) {
-	// After all 4 lines are shown, we can transition.
-	return _phase > (_initPhase + LINE_COUNT);
 }
 
 #endif

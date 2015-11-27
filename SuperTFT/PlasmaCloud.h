@@ -4,6 +4,8 @@
 #include <Arduino.h>
 #include "ILI9341_t3.h"
 #include "MathUtil.h"
+#include "BaseAnimation.h"
+
 
 const float PLASMA_CLOUD_SPEED = 0.02;
 const uint_fast16_t PLASMA_CLOUD_MARGIN = 25;
@@ -13,20 +15,27 @@ const uint_fast8_t PLASMA_CLOUD_STEP_Y = 4;
 
 const float PLASMA_COLOR_CYCLE_SPEED = 0.003;
 
-struct PlasmaCloudVars {
-  float _phase;
-	float _colorCycle;
-	uint_fast8_t _ditherY;
-  uint_fast16_t _bgColor;
-};
-PlasmaCloudVars pc = (PlasmaCloudVars){ 0 };
-
 const uint_fast8_t SQRT_TABLE_LENGTH = 255;
 uint_fast8_t sqrtTable[ SQRT_TABLE_LENGTH ];
 uint_fast8_t sqrtBitShift;	// Shift distances (integers) this many bits. This will give you a lookup index to get the square root.
 
-void plasmaCloud_setup( ILI9341_t3 tft ) {
-	pc._bgColor = tft.color565( 0x77, 0, 0xcc );
+class PlasmaCloud : public BaseAnimation {
+public:
+	PlasmaCloud() : BaseAnimation() {};
+
+	void init( ILI9341_t3 tft );
+	uint_fast16_t bgColor( void );
+	void perFrame( ILI9341_t3 tft, FrameParams frameParams );
+
+private:
+	float _phase;
+	float _colorCycle;
+	uint_fast8_t _ditherY;
+  uint_fast16_t _bgColor;
+};
+
+void PlasmaCloud::init( ILI9341_t3 tft ) {
+	_bgColor = tft.color565( 0x77, 0, 0xcc );
 
   float w = (float)tft.width();
   float h = (float)tft.height();
@@ -46,39 +55,39 @@ void plasmaCloud_setup( ILI9341_t3 tft ) {
 	}
 }
 
-uint_fast16_t plasmaCloud_bgColor(){
-	return pc._bgColor;
+uint_fast16_t PlasmaCloud::bgColor( void ) {
+	return _bgColor;
 }
 
-void plasmaCloud_perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
+void PlasmaCloud::perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
   uint_fast16_t w = (int_fast16_t)tft.width();
   uint_fast16_t h = (int_fast16_t)tft.height();
 
-	pc._phase += frameParams.timeMult * PLASMA_CLOUD_SPEED * (1.0f + frameParams.audioMean*5.0f);
+	_phase += frameParams.timeMult * PLASMA_CLOUD_SPEED * (1.0f + frameParams.audioMean*5.0f);
 
-	pc._colorCycle -= frameParams.timeMult * PLASMA_COLOR_CYCLE_SPEED * (1.0f + frameParams.audioMean*6.0f);
-	if( pc._colorCycle <= 0.0f ) pc._colorCycle += 1.0f;
-	uint_fast8_t colorAdd = pc._colorCycle * 0xff;
+	_colorCycle -= frameParams.timeMult * PLASMA_COLOR_CYCLE_SPEED * (1.0f + frameParams.audioMean*6.0f);
+	if( _colorCycle <= 0.0f ) _colorCycle += 1.0f;
+	uint_fast8_t colorAdd = _colorCycle * 0xff;
 
 	//py._ditherY = (py._ditherY + 1) % PLASMA_YELLOW_DITHER;
 
 	PointU16 p0 = (PointU16){
-		(uint_fast16_t)(w/2 + (sin(pc._phase*0.32f)*(w/2-PLASMA_CLOUD_MARGIN) )),
-		(uint_fast16_t)(h/2 + (sin(pc._phase*0.23f)*(h/2-PLASMA_CLOUD_MARGIN) ))
+		(uint_fast16_t)(w/2 + (sin(_phase*0.32f)*(w/2-PLASMA_CLOUD_MARGIN) )),
+		(uint_fast16_t)(h/2 + (sin(_phase*0.23f)*(h/2-PLASMA_CLOUD_MARGIN) ))
 	};
 	PointU16 p1 = (PointU16){
-		(uint_fast16_t)(w/2 + (cos(pc._phase*1.07f)*(w/2-PLASMA_CLOUD_MARGIN) )),
-		(uint_fast16_t)(h/2 + (cos(pc._phase*1.42f)*(h/2-PLASMA_CLOUD_MARGIN) ))
+		(uint_fast16_t)(w/2 + (cos(_phase*1.07f)*(w/2-PLASMA_CLOUD_MARGIN) )),
+		(uint_fast16_t)(h/2 + (cos(_phase*1.42f)*(h/2-PLASMA_CLOUD_MARGIN) ))
 	};
 	/*
 	PointU16 p2 = (PointU16){
-		(uint_fast16_t)(w/2 + (cos(pc._phase*0.57f)*(w/2-PLASMA_CLOUD_MARGIN) )),
-		(uint_fast16_t)(h/2 + (cos(pc._phase*0.81f)*(h/2-PLASMA_CLOUD_MARGIN) ))
+		(uint_fast16_t)(w/2 + (cos(_phase*0.57f)*(w/2-PLASMA_CLOUD_MARGIN) )),
+		(uint_fast16_t)(h/2 + (cos(_phase*0.81f)*(h/2-PLASMA_CLOUD_MARGIN) ))
 	};
 	*/
 
 	for( uint_fast16_t x=0; x<w; x+=PLASMA_CLOUD_LINE_WIDTH ) {
-		for( uint_fast16_t y=pc._ditherY; y<h; y+=PLASMA_CLOUD_STEP_Y ) {
+		for( uint_fast16_t y=_ditherY; y<h; y+=PLASMA_CLOUD_STEP_Y ) {
 			PointU8 d0 = (PointU8){ abs(p0.x - x), abs(p0.y - y) };
 			PointU8 d1 = (PointU8){ abs(p1.x - x), abs(p1.y - y) };
 			//PointU8 d2 = (PointU8){ abs(p2.x - x), abs(p2.y - y) };
@@ -95,7 +104,7 @@ void plasmaCloud_perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
 		}
 	}
 
-	pc._ditherY = (pc._ditherY + 1) % PLASMA_CLOUD_STEP_Y;
+	_ditherY = (_ditherY + 1) % PLASMA_CLOUD_STEP_Y;
 
 }
 

@@ -13,7 +13,9 @@
 #include "Leaves.h"
 #include "MagentaSquares.h"
 #include "MicCheck.h"
+*/
 #include "PlasmaCloud.h"
+/*
 #include "PlasmaYellow.h"
 #include "Sphere3D.h"
 #include "TriangleWeb.h"
@@ -24,7 +26,7 @@
 // Transitions
 #include "TransitionSquares.h"
 
-const boolean DEBUG_MODE = true; // dev: for hacking on one animation.
+const boolean DEBUG_MODE = false; // dev: for hacking on one animation.
 const uint_fast8_t DEBUG_ANIM_INDEX = 0;
 
 const int_fast16_t DEFAULT_ANIM_TIME = 20 * 1000;  // ms
@@ -38,17 +40,21 @@ FrameParams frameParams;
 long previousMillis = 0;
 
 /*
-Checkerboard _checkerboard;
-Cube3D _cube3D;
-Leaves _leaves;
-MagentaSquares _magentaSquares;
-PlasmaCloud _plasmaCloud;
-PlasmaYellow _plasmaYellow;
-Sphere3D _sphere3D;
-TriangleWeb _triangleWeb;
+Checkerboard * _checkerboard       = new Checkerboard();
+Cube3D * _cube3D                   = new Cube3D();
+Leaves * _leaves                   = new Leaves();
+MagentaSquares * _magentaSquares   = new MagentaSquares();
 */
-TwistyText *_twistyText;
-//Waveform _waveform;
+PlasmaCloud * _plasmaCloud         = new PlasmaCloud();
+/*
+PlasmaYellow * _plasmaYellow       = new PlasmaYellow();
+Sphere3D * _sphere3D               = new Sphere3D();
+TriangleWeb * _triangleWeb         = new TriangleWeb();
+*/
+TwistyText * _twistyText           = new TwistyText();
+/*
+Waveform * _waveform               = new Waveform();
+*/
 
 BaseAnimation **anims; // Array of pointers to BaseAnimation's. Initialized in setup() below.
 int_fast8_t animCount;
@@ -87,37 +93,20 @@ void setup() {
   tft.setScroll( 0 );
   tft.setColorSetDefault();
 
-  /*
-  _checkerboard = Checkerboard( tft );
-  _cube3D = Cube3D( tft );
-  _leaves = Leaves( tft );
-  _magentaSquares = MagentaSquares( tft );
-  _plasmaCloud = PlasmaCloud( tft );
-  _plasmaYellow = PlasmaYellow( tft );
-  _sphere3D = Sphere3D( tft );
-  _triangleWeb = TriangleWeb( tft );
-  */
-  _twistyText = new TwistyText();
-  //_waveform = Waveform( tft );
-
-  /*
-  anims[] = {
-    &_twistyText
-    &_plasmaCloud,
-    &_waveform,
-    &_magentaSquares,
-    &_sphere3D,
-    &_checkerboard,
-    &_leaves,
-    &_cube3D,
-    &_plasmaYellow,
-    &_triangleWeb
-  };
-  */
-
   // Populate anims in the order you want them to display.
   BaseAnimation* ANIMS_TEMP[] = {
-    _twistyText
+    _twistyText,
+    _plasmaCloud
+    /*,
+    _waveform,
+    _magentaSquares,
+    _sphere3D,
+    _checkerboard,
+    _leaves,
+    _cube3D,
+    _plasmaYellow,
+    _triangleWeb
+    */
   };
   animCount = sizeof( ANIMS_TEMP ) / sizeof( BaseAnimation* );
 
@@ -125,13 +114,12 @@ void setup() {
   anims = (BaseAnimation**)malloc( animCount * sizeof(BaseAnimation*) );
   for( int_fast8_t i=0; i<animCount; i++ ) {
     anims[i] = ANIMS_TEMP[i];
-  }
 
-  // Initialize all animations
-  for( int_fast8_t i=0; i<animCount; i++ ) {
+    // Initalize all animations
     anims[i]->init( tft );
   }
 
+  // Start!
   if( !activeAnim ) {
     if( DEBUG_MODE ) {
       startAnimation( anims[DEBUG_ANIM_INDEX] );
@@ -173,30 +161,32 @@ void loop() {
   frameParams.audioPeak = min( (uint_fast16_t)frameParams.audioPeak, (uint_fast16_t)511 );
 
   if( !isTransition ) {
-    //((BaseAnimation*)_twistyText)->perFrame( tft, frameParams );
     activeAnim->perFrame( tft, frameParams );
     animTimeLeft -= elapsed;
   }
 
   // Has this animation expired?
-  boolean canTransition = activeAnim->canTransition();
+  boolean willForceTransition = activeAnim->willForceTransition();
+  boolean forceTransitionNow = activeAnim->forceTransitionNow();
 
-  if( !DEBUG_MODE && canTransition && (animTimeLeft <= 0) ) {
+  if( !DEBUG_MODE ) {
+    if( (!willForceTransition && (animTimeLeft <= 0)) || forceTransitionNow ) {
 
-    // If the transition has not started yet, then start it.
-    if( !isTransition ) {
-      isTransition = true;
-      nextAnim = anims[ (getActiveAnimIndex() + 1) % animCount ];
+      // If the transition has not started yet, then start it.
+      if( !isTransition ) {
+        isTransition = true;
+        nextAnim = anims[ (getActiveAnimIndex() + 1) % animCount ];
 
-      transitionSquares_reset( tft, nextAnim->bgColor() );
+        transitionSquares_reset( tft, nextAnim->bgColor() );
+      }
+
+      // After the transition ends, advance to the next animation
+      boolean isTransitionComplete = transitionSquares_perFrame( tft, frameParams );
+      if( isTransitionComplete ) {
+        startAnimation( nextAnim );
+      }
+
     }
-
-    // After the transition ends, advance to the next animation
-    boolean isTransitionComplete = transitionSquares_perFrame( tft, frameParams );
-    if( isTransitionComplete ) {
-      startAnimation( nextAnim );
-    }
-
   }
 
 }

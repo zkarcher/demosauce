@@ -10,14 +10,15 @@ public:
 	BaseAnimation(){};
 
 	virtual void init( ILI9341_t3 tft );
-
 	virtual uint_fast16_t bgColor( void );
 	virtual void reset( ILI9341_t3 tft );
+
+	virtual boolean willForceTransition( void );
+	virtual boolean forceTransitionNow( void );
+
 	virtual void perFrame( ILI9341_t3 tft, FrameParams frameParams );
-	virtual boolean canTransition( void );
 };
 
-/*
 void BaseAnimation::init( ILI9341_t3 tft ) {
 	// Extend me
 }
@@ -31,15 +32,17 @@ void BaseAnimation::reset( ILI9341_t3 tft ) {
 	// Extend me
 }
 
+boolean BaseAnimation::willForceTransition( void ) {
+	return false;	// Default: SuperTFT will transition animations automatically
+}
+
+boolean BaseAnimation::forceTransitionNow( void ) {
+	// Extend me
+	return false;	// Default: SuperTFT will transition animations automatically
+}
+
 void BaseAnimation::perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
 	// Extend me
 }
-
-boolean BaseAnimation::canTransition( void ) {
-	// Extend me
-
-	return true;		// Default: Animations can be changed at any time
-}
-*/
 
 #endif
