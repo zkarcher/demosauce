@@ -4,6 +4,8 @@
 #include <Arduino.h>
 #include "ILI9341_t3.h"
 #include "MathUtil.h"
+#include "BaseAnimation.h"
+
 
 const float SPHERE_3D_ROTATE_SPEED = 0.005f;
 const float SPHERE_3D_TILT_SPEED = 2.0f;
@@ -13,7 +15,18 @@ const float SPHERE_3D_TILT_AMOUNT = 0.4f;
 const float SPHERE_DISTANCE = 2.5f;
 const float SPHERE_OUTER_MULT = 1.414f;  // spike size
 
-struct Sphere3DVars {
+
+class Sphere3D : public BaseAnimation {
+public:
+	Sphere3D() : BaseAnimation() {};
+
+	void init( ILI9341_t3 tft );
+	uint_fast16_t bgColor( void );
+	void perFrame( ILI9341_t3 tft, FrameParams frameParams );
+
+private:
+  void _drawLine( ILI9341_t3 tft, float cosTilt, float sinTilt, float x, float y, float z, uint_fast16_t w_2, uint_fast16_t h_2, uint_fast16_t color );
+
   float _rotatePhase;
   uint_fast16_t _baseCircSize;
   uint_fast16_t _circStep;
@@ -21,24 +34,23 @@ struct Sphere3DVars {
 
   uint_fast16_t _bgColor;
 };
-Sphere3DVars s3d = (Sphere3DVars){ 0 };
 
-void sphere3D_setup( ILI9341_t3 tft ) {
+void Sphere3D::init( ILI9341_t3 tft ) {
   uint_fast16_t w = tft.width();
   uint_fast16_t h = tft.height();
 
-  //s3d._bgColor = tft.color565( 0, 0x44, 0x44 ); // Only looks good in low light :P
-  s3d._bgColor = tft.color565( 0, 0, 0 );
+  //_bgColor = tft.color565( 0, 0x44, 0x44 ); // Only looks good in low light :P
+  _bgColor = tft.color565( 0, 0, 0 );
 
   Point16 sphereTopOnScreen = xyz2screen( 0, -1.0f, SPHERE_DISTANCE, (w>>1), (h>>1) );
-  s3d._baseCircSize = (h/2) - sphereTopOnScreen.y + 1;
+  _baseCircSize = (h/2) - sphereTopOnScreen.y + 1;
 }
 
-uint_fast16_t sphere3D_bgColor(){
-	return s3d._bgColor;
+uint_fast16_t Sphere3D::bgColor(){
+	return _bgColor;
 }
 
-void sphere3D_drawLine( ILI9341_t3 tft, float cosTilt, float sinTilt, float x, float y, float z, uint_fast16_t w_2, uint_fast16_t h_2, uint_fast16_t color ) {
+void Sphere3D::_drawLine( ILI9341_t3 tft, float cosTilt, float sinTilt, float x, float y, float z, uint_fast16_t w_2, uint_fast16_t h_2, uint_fast16_t color ) {
   // Tilt!
   float tempY = y;
   y = tempY*cosTilt + z*sinTilt;
@@ -56,18 +68,18 @@ void sphere3D_drawLine( ILI9341_t3 tft, float cosTilt, float sinTilt, float x, f
 
 }
 
-void sphere3D_perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
+void Sphere3D::perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
   uint_fast16_t w = (uint_fast16_t)tft.width();
   uint_fast16_t h = (uint_fast16_t)tft.height();
 
 	uint_fast16_t w_2 = (w>>1);
 	uint_fast16_t h_2 = (h>>1);
 
-	float oldPhase = s3d._rotatePhase;
-  s3d._rotatePhase += frameParams.timeMult * SPHERE_3D_ROTATE_SPEED;
+	float oldPhase = _rotatePhase;
+  _rotatePhase += frameParams.timeMult * SPHERE_3D_ROTATE_SPEED;
 
-	s3d._sparkle = max( (frameParams.audioPeak >> 1), s3d._sparkle * (1.0f-(frameParams.timeMult*0.02f)) );
-	uint_fast16_t erase = s3d._bgColor;
+	_sparkle = max( (frameParams.audioPeak >> 1), _sparkle * (1.0f-(frameParams.timeMult*0.02f)) );
+	uint_fast16_t erase = _bgColor;
 
 	float x, y, z, sinLat;
 
@@ -75,7 +87,7 @@ void sphere3D_perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
   float oldCosTilt = cos( oldTilt );
   float oldSinTilt = sin( oldTilt );
 
-  float tilt = -sin( s3d._rotatePhase * SPHERE_3D_TILT_SPEED ) * SPHERE_3D_TILT_AMOUNT;
+  float tilt = -sin( _rotatePhase * SPHERE_3D_TILT_SPEED ) * SPHERE_3D_TILT_AMOUNT;
   float cosTilt = cos( tilt );
   float sinTilt = sin( tilt );
 
@@ -93,27 +105,27 @@ void sphere3D_perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
 			z *= sinLat;
 
 			// We can swap & negate x,y,z to draw at least 8 lines without recomputing cos & sin values etc
-			sphere3D_drawLine( tft, oldCosTilt, oldSinTilt, x, y, z, w_2, h_2, erase );
-			sphere3D_drawLine( tft, oldCosTilt, oldSinTilt, -x, y, -z, w_2, h_2, erase );
-			sphere3D_drawLine( tft, oldCosTilt, oldSinTilt, -z, y, x, w_2, h_2, erase );
-			sphere3D_drawLine( tft, oldCosTilt, oldSinTilt, z, y, -x, w_2, h_2, erase );
+			_drawLine( tft, oldCosTilt, oldSinTilt, x, y, z, w_2, h_2, erase );
+			_drawLine( tft, oldCosTilt, oldSinTilt, -x, y, -z, w_2, h_2, erase );
+			_drawLine( tft, oldCosTilt, oldSinTilt, -z, y, x, w_2, h_2, erase );
+			_drawLine( tft, oldCosTilt, oldSinTilt, z, y, -x, w_2, h_2, erase );
 
 			// Draw the other hemisphere
-			sphere3D_drawLine( tft, oldCosTilt, oldSinTilt, x, -y, z, w_2, h_2, erase );
-			sphere3D_drawLine( tft, oldCosTilt, oldSinTilt, -x, -y, -z, w_2, h_2, erase );
-			sphere3D_drawLine( tft, oldCosTilt, oldSinTilt, -z, -y, x, w_2, h_2, erase );
-			sphere3D_drawLine( tft, oldCosTilt, oldSinTilt, z, -y, -x, w_2, h_2, erase );
+			_drawLine( tft, oldCosTilt, oldSinTilt, x, -y, z, w_2, h_2, erase );
+			_drawLine( tft, oldCosTilt, oldSinTilt, -x, -y, -z, w_2, h_2, erase );
+			_drawLine( tft, oldCosTilt, oldSinTilt, -z, -y, x, w_2, h_2, erase );
+			_drawLine( tft, oldCosTilt, oldSinTilt, z, -y, -x, w_2, h_2, erase );
 
 			// Now, draw the new lines
 
       uint_fast16_t color = tft.color565(
-        random( s3d._sparkle>>1, s3d._sparkle ),
-        random( s3d._sparkle>>1, s3d._sparkle ),
+        random( _sparkle>>1, _sparkle ),
+        random( _sparkle>>1, _sparkle ),
         0xff
       );
 
-			x = cos( s3d._rotatePhase + lon );
-			z = sin( s3d._rotatePhase + lon );
+			x = cos( _rotatePhase + lon );
+			z = sin( _rotatePhase + lon );
 
 			// Now we need the y (up & down), then normalize x & z to create a normalized 3D vector (length == 1.0)
 			y = cos( lat );
@@ -122,23 +134,23 @@ void sphere3D_perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
 			z *= sinLat;
 
 			// We can swap & negate x,y,z to draw at least 8 lines without recomputing cos & sin values etc
-			sphere3D_drawLine( tft, cosTilt, sinTilt, x, y, z, w_2, h_2, color );
-			sphere3D_drawLine( tft, cosTilt, sinTilt, -x, y, -z, w_2, h_2, color );
-			sphere3D_drawLine( tft, cosTilt, sinTilt, -z, y, x, w_2, h_2, color );
-			sphere3D_drawLine( tft, cosTilt, sinTilt, z, y, -x, w_2, h_2, color );
+			_drawLine( tft, cosTilt, sinTilt, x, y, z, w_2, h_2, color );
+			_drawLine( tft, cosTilt, sinTilt, -x, y, -z, w_2, h_2, color );
+			_drawLine( tft, cosTilt, sinTilt, -z, y, x, w_2, h_2, color );
+			_drawLine( tft, cosTilt, sinTilt, z, y, -x, w_2, h_2, color );
 
 			// Draw the other hemisphere
-			sphere3D_drawLine( tft, cosTilt, sinTilt, x, -y, z, w_2, h_2, color );
-			sphere3D_drawLine( tft, cosTilt, sinTilt, -x, -y, -z, w_2, h_2, color );
-			sphere3D_drawLine( tft, cosTilt, sinTilt, -z, -y, x, w_2, h_2, color );
-			sphere3D_drawLine( tft, cosTilt, sinTilt, z, -y, -x, w_2, h_2, color );
+			_drawLine( tft, cosTilt, sinTilt, x, -y, z, w_2, h_2, color );
+			_drawLine( tft, cosTilt, sinTilt, -x, -y, -z, w_2, h_2, color );
+			_drawLine( tft, cosTilt, sinTilt, -z, -y, x, w_2, h_2, color );
+			_drawLine( tft, cosTilt, sinTilt, z, -y, -x, w_2, h_2, color );
 		}
 	}
 
-  s3d._circStep++;
-  if( s3d._circStep > 10 ) s3d._circStep = 0;
+  _circStep++;
+  if( _circStep > 10 ) _circStep = 0;
 
-  tft.drawCircle( w_2, h_2, s3d._baseCircSize + s3d._circStep, tft.color565( 0, random((10-s3d._circStep)*5), random((10-s3d._circStep)*10) ) | s3d._bgColor );
+  tft.drawCircle( w_2, h_2, _baseCircSize + _circStep, tft.color565( 0, random((10-_circStep)*5), random((10-_circStep)*10) ) | _bgColor );
 
 }
 

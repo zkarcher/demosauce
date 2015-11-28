@@ -4,15 +4,8 @@
 #include <Arduino.h>
 #include "ILI9341_t3.h"
 #include "MathUtil.h"
+#include "BaseAnimation.h"
 
-struct SquareVars {
-  uint_fast8_t _step;
-  float _audioPeak;
-  uint_fast8_t _ripplePos;
-  uint_fast8_t _rippleSpeed;
-  uint_fast16_t _bgColor;
-};
-SquareVars sq = (SquareVars){ 0 };
 
 const uint_fast8_t SQ_SPEED = 0x06;
 const uint_fast8_t SQ_SIZE = 16;
@@ -22,15 +15,34 @@ const uint_fast8_t RIPPLE_STROKE = 0x20;
 const float RIPPLE_AMP_LATCH = 1.5f;
 const float RIPPLE_AMP_DECAY = 0.01f;
 
-uint_fast8_t sqAcross;
-uint_fast8_t sqDown;
-uint_fast8_t * radii;
 
-float distance2D( float w, float h ) {
+class MagentaSquares : public BaseAnimation {
+public:
+	MagentaSquares() : BaseAnimation() {};
+
+	void init( ILI9341_t3 tft );
+	uint_fast16_t bgColor( void );
+	void perFrame( ILI9341_t3 tft, FrameParams frameParams );
+
+private:
+  inline float distance2D( float w, float h );
+
+  uint_fast8_t _step;
+  float _audioPeak;
+  uint_fast8_t _ripplePos;
+  uint_fast8_t _rippleSpeed;
+  uint_fast16_t _bgColor;
+
+  uint_fast8_t sqAcross;
+  uint_fast8_t sqDown;
+  uint_fast8_t * radii;
+};
+
+inline float MagentaSquares::distance2D( float w, float h ) {
   return sqrt( w*w + h*h );
 }
 
-void magentaSquares_setup( ILI9341_t3 tft ) {
+void MagentaSquares::init( ILI9341_t3 tft ) {
   uint_fast16_t w = tft.width();
   uint_fast16_t h = tft.height();
 
@@ -51,26 +63,26 @@ void magentaSquares_setup( ILI9341_t3 tft ) {
     }
   }
 
-  sq._bgColor = tft.color565( 0x88, 0, 0x88 );
+  _bgColor = tft.color565( 0x88, 0, 0x88 );
 }
 
-uint_fast16_t magentaSquares_bgColor(){
-	return sq._bgColor;
+uint_fast16_t MagentaSquares::bgColor( void ) {
+	return _bgColor;
 }
 
-void magentaSquares_perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
+void MagentaSquares::perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
   //uint_fast16_t w = tft.width();
   //uint_fast16_t h = tft.height();
 
   // Trigger a new audio ripple?
   float amp_f = frameParams.audioMean;  // range [0..1]
-  if( amp_f > sq._audioPeak ) {
-    sq._ripplePos = 0.0; // reset the ripple
+  if( amp_f > _audioPeak ) {
+    _ripplePos = 0.0; // reset the ripple
 
-    sq._rippleSpeed = lerp( RIPPLE_SPEED_MIN, RIPPLE_SPEED_MAX, min( 1.0, amp_f/sq._audioPeak - 1.0 ) );
+    _rippleSpeed = lerp( RIPPLE_SPEED_MIN, RIPPLE_SPEED_MAX, min( 1.0, amp_f/_audioPeak - 1.0 ) );
 
     // The next peak must be ~1.5x louder than this one to trigger a ripple
-    sq._audioPeak = amp_f * RIPPLE_AMP_LATCH;
+    _audioPeak = amp_f * RIPPLE_AMP_LATCH;
   }
 
   for( uint_fast8_t i=0; i<sqAcross; i++ ) {
@@ -87,11 +99,11 @@ void magentaSquares_perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
       // If this square is within the ripple area, draw using white
       uint_fast8_t idx = j*sqAcross + i;
       uint_fast8_t radius = radii[idx];
-      if( (radius < sq._ripplePos) && (sq._ripplePos < radius+RIPPLE_STROKE) ) {
+      if( (radius < _ripplePos) && (_ripplePos < radius+RIPPLE_STROKE) ) {
         clr = tft.color565( 0xff, random(0x99,0xff), 0xff );
 
       } else {
-        uint_fast8_t bright = (x+y+sq._step) & 0xff;
+        uint_fast8_t bright = (x+y+_step) & 0xff;
         clr = tft.color565( bright, 0, bright );
       }
 
@@ -102,9 +114,9 @@ void magentaSquares_perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
 
   //delay(10);
 
-  sq._step += SQ_SPEED * frameParams.timeMult;
-  sq._audioPeak *= (1.0 - RIPPLE_AMP_DECAY * frameParams.timeMult);
-  sq._ripplePos = min( 0xff, (uint_fast16_t)sq._ripplePos + sq._rippleSpeed * frameParams.timeMult );
+  _step += SQ_SPEED * frameParams.timeMult;
+  _audioPeak *= (1.0 - RIPPLE_AMP_DECAY * frameParams.timeMult);
+  _ripplePos = min( 0xff, (uint_fast16_t)_ripplePos + _rippleSpeed * frameParams.timeMult );
 }
 
 #endif

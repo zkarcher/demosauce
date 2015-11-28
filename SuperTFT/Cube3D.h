@@ -4,44 +4,50 @@
 #include <Arduino.h>
 #include "ILI9341_t3.h"
 #include "MathUtil.h"
+#include "BaseAnimation.h"
+
 
 const float CUBE_3D_ROTATE_SPEED = 0.02f;
 
-struct Cube3DVars {
+
+class Cube3D : public BaseAnimation {
+public:
+	Cube3D() : BaseAnimation() {};
+
+	void init( ILI9341_t3 tft );
+	uint_fast16_t bgColor( void );
+	void perFrame( ILI9341_t3 tft, FrameParams frameParams );
+
+private:
   float _phase;
 	float _audio;
-
   uint_fast16_t _bgColor;
 };
-Cube3DVars c3d = (Cube3DVars){ 0 };
 
-void cube3D_setup( ILI9341_t3 tft ) {
-  //uint_fast16_t w = tft.width();
-  //uint_fast16_t h = tft.height();
-
-  c3d._bgColor = tft.color565( 0, 0, 0 );
+void Cube3D::init( ILI9341_t3 tft ) {
+  _bgColor = tft.color565( 0, 0, 0 );
 }
 
-uint_fast16_t cube3D_bgColor(){
-	return c3d._bgColor;
+uint_fast16_t Cube3D::bgColor(){
+	return _bgColor;
 }
 
-void cube3D_perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
+void Cube3D::perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
   uint_fast16_t w = (uint_fast16_t)tft.width();
   uint_fast16_t h = (uint_fast16_t)tft.height();
 
 	uint_fast16_t w_2 = (w>>1);
 	uint_fast16_t h_2 = (h>>1);
 
-	float oldPhase = c3d._phase;
-	float oldAudio = c3d._audio;
+	float oldPhase = _phase;
+	float oldAudio = _audio;
 	float oldCos = cos( oldPhase );
 	float oldSin = sin( oldPhase );
 
-  c3d._phase += frameParams.timeMult * CUBE_3D_ROTATE_SPEED;
-	c3d._audio = frameParams.audioMean;
-	float pCos = cos( c3d._phase );
-	float pSin = sin( c3d._phase );
+  _phase += frameParams.timeMult * CUBE_3D_ROTATE_SPEED;
+	_audio = frameParams.audioMean;
+	float pCos = cos( _phase );
+	float pSin = sin( _phase );
 
 	//uint_fast16_t border = tft.color565( 0x08, 0, 0 );
 	uint_fast16_t eraseColor = tft.color565( 0, 0, 0 );
@@ -67,7 +73,7 @@ void cube3D_perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
 				tft.drawCircle( pt.x, pt.y, 7.0-z3d, eraseColor );
 
 				x3d = pCos*x - pSin*z;
-				y3d = y + hash*c3d._audio;
+				y3d = y + hash*_audio;
 				z3d = 3.0 + pCos*z + pSin*x;
 
 				pt = xyz2screen( x3d, y3d, z3d, w_2, h_2 );

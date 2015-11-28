@@ -4,27 +4,32 @@
 #include <Arduino.h>
 #include <math.h>
 #include "ILI9341_t3.h"
+#include "BaseAnimation.h"
 
-struct WaveformVars {
+
+class Waveform : public BaseAnimation {
+public:
+	Waveform() : BaseAnimation() {};
+
+	void init( ILI9341_t3 tft );
+	uint_fast16_t bgColor( void );
+	void perFrame( ILI9341_t3 tft, FrameParams frameParams );
+
+private:
   uint_fast16_t _step;
   uint_fast8_t _colorPhase;
   uint_fast16_t _bgColor;
 };
-WaveformVars wv = (WaveformVars){ 0, 0 };
 
-void waveform_setup( ILI9341_t3 tft ) {
-  //uint_fast16_t w = tft.width();
-  //uint_fast16_t h = tft.height();
-  //tft.fillRect( 0, 0, w, h, 0x0 );
-
-  wv._bgColor = tft.color565( 0, 0, 0x55 );
+void Waveform::init( ILI9341_t3 tft ) {
+  _bgColor = tft.color565( 0, 0, 0x55 );
 }
 
-uint_fast16_t waveform_bgColor(){
-	return wv._bgColor;
+uint_fast16_t Waveform::bgColor( void ) {
+	return _bgColor;
 }
 
-void waveform_perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
+void Waveform::perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
   uint_fast16_t w = tft.width();
   uint_fast16_t h = tft.height();
 
@@ -38,10 +43,10 @@ void waveform_perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
   // Prepare body height
   uint_fast16_t h_2 = (h >> 1);
   uint_fast16_t bodyHeight = frameParams.audioMean * h;
-  tft.drawFastVLine( wv._step, h_2-(bodyHeight>>1), bodyHeight, bodyColor );
+  tft.drawFastVLine( _step, h_2-(bodyHeight>>1), bodyHeight, bodyColor );
 
   // Clear this column. Background should have a triangle wave effect
-  uint_fast8_t bgBright = wv._colorPhase + wv._step;
+  uint_fast8_t bgBright = _colorPhase + _step;
   if( bgBright & 0x80 ) {
     bgBright = (0xff-bgBright) << 1;
   } else {
@@ -51,18 +56,18 @@ void waveform_perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
 
   // Draw background color in the other pixels
   uint_fast16_t margin = (h - bodyHeight) >> 1;
-  tft.drawFastVLine( wv._step, 0,          margin, bgColor );
-  tft.drawFastVLine( wv._step, h - margin, margin, bgColor );
+  tft.drawFastVLine( _step, 0,          margin, bgColor );
+  tft.drawFastVLine( _step, h - margin, margin, bgColor );
 
   // Advance to next line
-  if( wv._step == 0 ) {
-    wv._step = w - 1; // Restart drawing on right-hand size
+  if( _step == 0 ) {
+    _step = w - 1; // Restart drawing on right-hand size
 
     // After the screen is covered: Advance the background color
-    wv._colorPhase += 3;
+    _colorPhase += 3;
 
   } else {
-    wv._step--;
+    _step--;
   }
 
 }

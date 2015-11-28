@@ -7,21 +7,17 @@
 #include "FrameParams.h"
 
 // Animations
-/*
 #include "Checkerboard.h"
 #include "Cube3D.h"
 #include "Leaves.h"
 #include "MagentaSquares.h"
-#include "MicCheck.h"
-*/
+//#include "MicCheck.h"
 #include "PlasmaCloud.h"
-/*
 #include "PlasmaYellow.h"
 #include "Sphere3D.h"
 #include "TriangleWeb.h"
-*/
 #include "TwistyText.h"
-//#include "Waveform.h"
+#include "Waveform.h"
 
 // Transitions
 #include "TransitionSquares.h"
@@ -39,22 +35,16 @@ ILI9341_t3 tft = ILI9341_t3(TFT_CS, TFT_DC);
 FrameParams frameParams;
 long previousMillis = 0;
 
-/*
 Checkerboard * _checkerboard       = new Checkerboard();
 Cube3D * _cube3D                   = new Cube3D();
 Leaves * _leaves                   = new Leaves();
 MagentaSquares * _magentaSquares   = new MagentaSquares();
-*/
 PlasmaCloud * _plasmaCloud         = new PlasmaCloud();
-/*
 PlasmaYellow * _plasmaYellow       = new PlasmaYellow();
 Sphere3D * _sphere3D               = new Sphere3D();
 TriangleWeb * _triangleWeb         = new TriangleWeb();
-*/
 TwistyText * _twistyText           = new TwistyText();
-/*
 Waveform * _waveform               = new Waveform();
-*/
 
 BaseAnimation **anims; // Array of pointers to BaseAnimation's. Initialized in setup() below.
 int_fast8_t animCount;
@@ -96,8 +86,7 @@ void setup() {
   // Populate anims in the order you want them to display.
   BaseAnimation* ANIMS_TEMP[] = {
     _twistyText,
-    _plasmaCloud
-    /*,
+    _plasmaCloud,
     _waveform,
     _magentaSquares,
     _sphere3D,
@@ -106,7 +95,6 @@ void setup() {
     _cube3D,
     _plasmaYellow,
     _triangleWeb
-    */
   };
   animCount = sizeof( ANIMS_TEMP ) / sizeof( BaseAnimation* );
 
