@@ -68,10 +68,11 @@ boolean TwistyText::forceTransitionNow( void ) {
 void TwistyText::perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
 	uint_fast16_t w = (uint_fast16_t)tft.width();
   uint_fast16_t h = (uint_fast16_t)tft.height();
+	uint_fast16_t w_2 = (w>>1);
+	uint_fast16_t h_2 = (h>>1);
 
 	uint_fast16_t paddingLeft = ((w - CHARS_PER_LINE * TEXT_PIXEL_WIDTH * 7) >> 1);
 	paddingLeft += TEXT_PIXEL_WIDTH;	// Because each character has 2 empty cols on the right
-	uint_fast16_t h_2 = (h>>1);
 
 	_phase += frameParams.timeMult * LINE_SCROLL_SPEED;
 
@@ -211,42 +212,70 @@ void TwistyText::perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
 
 	// Super-awesome fake EQ meters
 	const uint_fast8_t MAX_EQ_BARS = 16;
-	const uint_fast8_t AUDIO_POWER = 48;	// Seriously overdrive this for maximum meter awesomeness
-	const uint_fast8_t EQ_BAR_WIDTH = 5;
-	const uint_fast8_t EQ_BAR_HEIGHT = 10;
+	const uint_fast8_t AUDIO_POWER = 64;	// Seriously overdrive this for maximum meter awesomeness
+	const uint_fast8_t EQ_BAR_WIDTH = 3;
+	const uint_fast8_t EQ_BAR_HEIGHT = 6;
 	const uint_fast8_t EQ_BAR_SPACING_X = 3;
-	const uint_fast8_t EQ_BAR_SPACING_Y = 8;
+	const uint_fast8_t EQ_BAR_SPACING_Y = 5;
 
-	uint_fast8_t audioEnergy = (uint_fast16_t)(frameParams.audioPeak * AUDIO_POWER) / 512;
+	// Position EQ groups
+	const uint_fast8_t EQ_GROUP_SEPARATE_X = 0;
+	const uint_fast8_t EQ_GROUP_PADDING_Y = 12;
 
-	// Each meter steals some energy from audioEnergy
-	uint_fast8_t newMeters[3];
-	newMeters[0] = random( (audioEnergy>>1), audioEnergy );
-	audioEnergy -= newMeters[0];
-	newMeters[1] = random( (audioEnergy>>1), audioEnergy );
-	audioEnergy -= newMeters[1];
-	newMeters[2] = audioEnergy;
+	uint_fast8_t baseEnergy = (uint_fast16_t)(frameParams.audioPeak * AUDIO_POWER) / 512;
 
-	for( uint_fast8_t row=0; row<3; row++ ) {	// 3 meter rows
-		// Clamp the newMeters values to a sane range, please
-		newMeters[row] = min( newMeters[row], MAX_EQ_BARS );
+	// Draw 4 groups: 2 on top, 2 on bottom, facing away from each other (out from center)
+	uint_fast8_t meterOffset = 0;
+	for( int_fast8_t eqX=-1; eqX<=1; eqX+=2 ) {
 
-		// Either draw or erase bricks, depending on whether the meter level increased or decreased
-		uint_fast16_t color = _bgColor;	// default: erase
+		uint_fast16_t baseX = w_2 + eqX*((EQ_GROUP_SEPARATE_X+EQ_BAR_WIDTH+EQ_BAR_SPACING_X)>>1);
 
-		// If the energy of this row is higher: Set the draw color to something bright and colorful
-		if( newMeters[row] > _meters[row] ) {
-			uint_fast8_t bright = 0x66 + row*0x33;
-			color = tft.color565( 0x66, bright, bright );
+		for( int_fast8_t eqY=-1; eqY<=1; eqY+=2 ) {
+			uint_fast16_t baseY = ( (eqY==1) ? EQ_GROUP_PADDING_Y : (h-EQ_GROUP_PADDING_Y-(EQ_BAR_HEIGHT)) );
+
+			uint_fast8_t energy = baseEnergy;
+
+			// Each meter steals some energy from audioEnergy
+			uint_fast8_t newMeters[3];
+			newMeters[2] = random( (energy>>2), energy );
+			energy -= newMeters[2];
+			newMeters[1] = random( (energy>>1), energy );
+			energy -= newMeters[1];
+			newMeters[0] = energy;
+
+			for( uint_fast8_t row=0; row<3; row++ ) {	// 3 meter rows
+				// Draw position
+				uint_fast16_t drawY = baseY + row*eqY*(EQ_BAR_HEIGHT+EQ_BAR_SPACING_Y);
+
+				uint_fast8_t prevMeter = _meters[meterOffset+row];
+
+				// Clamp the newMeters values to a sane range, please.
+				// Avoid flicker at low volume levels.
+				newMeters[row] = constrain( (uint_fast8_t)newMeters[row], (uint_fast8_t)1, (uint_fast8_t)MAX_EQ_BARS );
+
+				// Either draw or erase bricks, depending on whether the meter level increased or decreased
+				uint_fast16_t color = _bgColor;	// default: erase
+
+				// If the energy of this row is higher: Set the draw color to something bright and colorful
+				if( newMeters[row] > prevMeter ) {
+					uint_fast8_t bright = 0x66 + row*0x33;
+					color = tft.color565( 0x66, bright, bright );
+				}
+
+				uint_fast8_t minMeter = min( newMeters[row], prevMeter );
+				uint_fast8_t maxMeter = max( newMeters[row], prevMeter );
+				for( uint_fast8_t m=minMeter; m<maxMeter; m++ ) {
+					uint_fast16_t drawX = baseX + m*eqX*(EQ_BAR_WIDTH+EQ_BAR_SPACING_X);
+					tft.fillRect( drawX, drawY, EQ_BAR_WIDTH, EQ_BAR_HEIGHT, color );
+				}
+
+				// Save this value for next draw cycle. Redraw minimum area.
+				_meters[ meterOffset+row ] = newMeters[row];
+			}
+
+			// Advance _meters index for next batch of EQ meters
+			meterOffset += 3;
 		}
-
-		uint_fast8_t minMeter = min( newMeters[row], _meters[row] );
-		uint_fast8_t maxMeter = max( newMeters[row], _meters[row] );
-		for( uint_fast8_t m=minMeter; m<maxMeter; m++ ) {
-			tft.fillRect( m*(EQ_BAR_WIDTH+EQ_BAR_SPACING_X), row*(EQ_BAR_HEIGHT+EQ_BAR_SPACING_Y), EQ_BAR_WIDTH, EQ_BAR_HEIGHT, color );
-		}
-
-		_meters[row] = newMeters[row];
 	}
 
 }
