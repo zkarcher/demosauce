@@ -22,8 +22,8 @@
 // Transitions
 #include "TransitionSquares.h"
 
-const boolean DEBUG_MODE = false; // dev: for hacking on one animation.
-const uint_fast8_t DEBUG_ANIM_INDEX = 2;
+const boolean DEBUG_MODE = true; // dev: for hacking on one animation.
+const uint_fast8_t DEBUG_ANIM_INDEX = 0;
 
 const int_fast16_t DEFAULT_ANIM_TIME = 20 * 1000;  // ms
 

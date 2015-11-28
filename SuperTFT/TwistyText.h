@@ -42,6 +42,7 @@ private:
 	float _initPhase = 0;
 	float _phase = 0;
 	uint_fast16_t _bgColor;
+	uint_fast8_t _meters[12] = {0};
 };
 
 void TwistyText::init( ILI9341_t3 tft ) {
@@ -207,6 +208,46 @@ void TwistyText::perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
 		tft.fillRect( left, eraseTop, TEXT_PIXEL_WIDTH, (h_2+4.5*TEXT_PIXEL_HEIGHT)-eraseTop, _bgColor );
 
 	}	// end each column
+
+	// Super-awesome fake EQ meters
+	const uint_fast8_t MAX_EQ_BARS = 16;
+	const uint_fast8_t AUDIO_POWER = 48;	// Seriously overdrive this for maximum meter awesomeness
+	const uint_fast8_t EQ_BAR_WIDTH = 5;
+	const uint_fast8_t EQ_BAR_HEIGHT = 10;
+	const uint_fast8_t EQ_BAR_SPACING_X = 3;
+	const uint_fast8_t EQ_BAR_SPACING_Y = 8;
+
+	uint_fast8_t audioEnergy = (uint_fast16_t)(frameParams.audioPeak * AUDIO_POWER) / 512;
+
+	// Each meter steals some energy from audioEnergy
+	uint_fast8_t newMeters[3];
+	newMeters[0] = random( (audioEnergy>>1), audioEnergy );
+	audioEnergy -= newMeters[0];
+	newMeters[1] = random( (audioEnergy>>1), audioEnergy );
+	audioEnergy -= newMeters[1];
+	newMeters[2] = audioEnergy;
+
+	for( uint_fast8_t row=0; row<3; row++ ) {	// 3 meter rows
+		// Clamp the newMeters values to a sane range, please
+		newMeters[row] = min( newMeters[row], MAX_EQ_BARS );
+
+		// Either draw or erase bricks, depending on whether the meter level increased or decreased
+		uint_fast16_t color = _bgColor;	// default: erase
+
+		// If the energy of this row is higher: Set the draw color to something bright and colorful
+		if( newMeters[row] > _meters[row] ) {
+			uint_fast8_t bright = 0x66 + row*0x33;
+			color = tft.color565( 0x66, bright, bright );
+		}
+
+		uint_fast8_t minMeter = min( newMeters[row], _meters[row] );
+		uint_fast8_t maxMeter = max( newMeters[row], _meters[row] );
+		for( uint_fast8_t m=minMeter; m<maxMeter; m++ ) {
+			tft.fillRect( m*(EQ_BAR_WIDTH+EQ_BAR_SPACING_X), row*(EQ_BAR_HEIGHT+EQ_BAR_SPACING_Y), EQ_BAR_WIDTH, EQ_BAR_HEIGHT, color );
+		}
+
+		_meters[row] = newMeters[row];
+	}
 
 }
 
