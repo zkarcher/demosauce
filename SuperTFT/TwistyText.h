@@ -42,7 +42,7 @@ private:
 	float _initPhase = 0;
 	float _phase = 0;
 	uint_fast16_t _bgColor;
-	uint_fast8_t _meters[12] = {0};
+	uint_fast8_t _meters[12];
 };
 
 void TwistyText::init( ILI9341_t3 tft ) {
@@ -55,6 +55,10 @@ uint_fast16_t TwistyText::bgColor( void ) {
 
 void TwistyText::reset( ILI9341_t3 tft ) {
 	_phase = _initPhase = LINE_COUNT * random(999);
+
+	for( uint_fast8_t m=0; m<12; m++ ) {
+		_meters[m] = 0;
+	}
 }
 
 boolean TwistyText::willForceTransition( void ) {
