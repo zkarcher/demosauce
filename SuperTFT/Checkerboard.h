@@ -59,6 +59,13 @@ void Checkerboard::perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
   // First square is light or 8dark?
   boolean startLight = (sqLeftOfCenter%2) ^ (sqAboveCenter%2);
 
+	// Modulate colors based on audio input
+	float ease = (1.0f-frameParams.audioMean);
+	ease *= ease;	// Stronger reactions, please
+
+	uint_fast8_t bright = (1.0f-ease) * 0xff;
+	uint_fast16_t audioColor = tft.color565( bright, bright>>1, 0 );
+
   int_fast8_t sqX = -sqLeftOfCenter;
   for( float x=startX; x<w; x+=size ) {
     boolean isLight = startLight;
@@ -72,6 +79,7 @@ void Checkerboard::perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
       int16_t drawH = (y >= 0) ? size : (size+y);
 
       uint_fast16_t color = tft.color565( (sqX * sqY * 57), (isLight ? 0xff : 0), (isLight ? 0xff : 0) );
+			color ^= audioColor;
 
       tft.fillRect( drawX, drawY, drawW, drawH, color );
       isLight = !isLight;
