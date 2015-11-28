@@ -22,9 +22,9 @@ public:
 private:
   Point getWebPoint( uint_fast8_t i, uint_fast8_t j, float phase );
 
-  uint_fast8_t _ptsAcross;
-  uint_fast8_t _ptsDown;
-  float _phase;
+  uint_fast8_t _ptsAcross = 0;
+  uint_fast8_t _ptsDown = 0;
+  float _phase = 0;
   uint_fast16_t _bgColor;
 };
 

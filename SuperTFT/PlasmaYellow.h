@@ -21,8 +21,8 @@ public:
 	void perFrame( ILI9341_t3 tft, FrameParams frameParams );
 
 private:
-  float _phase;
-	uint_fast8_t _ditherY;
+  float _phase = 0;
+	uint_fast8_t _ditherY = 0;
   uint_fast16_t _bgColor;
 };
 

@@ -27,10 +27,10 @@ public:
 private:
   void _drawLine( ILI9341_t3 tft, float cosTilt, float sinTilt, float x, float y, float z, uint_fast16_t w_2, uint_fast16_t h_2, uint_fast16_t color );
 
-  float _rotatePhase;
-  uint_fast16_t _baseCircSize;
-  uint_fast16_t _circStep;
-  uint_fast8_t _sparkle;
+  float _rotatePhase = 0;
+  uint_fast16_t _baseCircSize = 0;
+  uint_fast16_t _circStep = 0;
+  uint_fast8_t _sparkle = 0;
 
   uint_fast16_t _bgColor;
 };

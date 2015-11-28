@@ -27,10 +27,10 @@ public:
 private:
   inline float distance2D( float w, float h );
 
-  uint_fast8_t _step;
-  float _audioPeak;
-  uint_fast8_t _ripplePos;
-  uint_fast8_t _rippleSpeed;
+  uint_fast8_t _step = 0;
+  float _audioPeak = 0;
+  uint_fast8_t _ripplePos = 0;
+  uint_fast8_t _rippleSpeed = 0;
   uint_fast16_t _bgColor;
 
   uint_fast8_t sqAcross;

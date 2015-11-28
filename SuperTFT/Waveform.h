@@ -16,8 +16,8 @@ public:
 	void perFrame( ILI9341_t3 tft, FrameParams frameParams );
 
 private:
-  uint_fast16_t _step;
-  uint_fast8_t _colorPhase;
+  uint_fast16_t _step = 0;
+  uint_fast8_t _colorPhase = 0;
   uint_fast16_t _bgColor;
 };
 

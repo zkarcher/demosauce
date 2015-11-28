@@ -26,7 +26,7 @@ public:
 private:
   void _drawLeaves( ILI9341_t3 tft, boolean doErase, uint_fast8_t iter, float radius, float spin, float x, float y, uint_fast16_t solidColor, uint_fast16_t outlineColor );
 
-  float _phase;
+  float _phase = 0;
   uint_fast16_t _bgColor;
 };
 
