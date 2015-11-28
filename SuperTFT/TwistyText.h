@@ -211,16 +211,16 @@ void TwistyText::perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
 	}	// end each column
 
 	// Super-awesome fake EQ meters
-	const uint_fast8_t MAX_EQ_BARS = 16;
-	const uint_fast8_t AUDIO_POWER = 64;	// Seriously overdrive this for maximum meter awesomeness
+	const uint_fast8_t MAX_EQ_BARS = 24;
+	const uint_fast8_t AUDIO_POWER = 96;	// Seriously overdrive this for maximum meter awesomeness
 	const uint_fast8_t EQ_BAR_WIDTH = 3;
-	const uint_fast8_t EQ_BAR_HEIGHT = 6;
+	const uint_fast8_t EQ_BAR_HEIGHT = 5;
 	const uint_fast8_t EQ_BAR_SPACING_X = 3;
 	const uint_fast8_t EQ_BAR_SPACING_Y = 5;
 
 	// Position EQ groups
 	const uint_fast8_t EQ_GROUP_SEPARATE_X = 0;
-	const uint_fast8_t EQ_GROUP_PADDING_Y = 12;
+	const uint_fast8_t EQ_GROUP_PADDING_Y = 13;
 
 	uint_fast8_t baseEnergy = (uint_fast16_t)(frameParams.audioPeak * AUDIO_POWER) / 512;
 
@@ -230,8 +230,10 @@ void TwistyText::perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
 
 		uint_fast16_t baseX = w_2 + eqX*((EQ_GROUP_SEPARATE_X+EQ_BAR_WIDTH+EQ_BAR_SPACING_X)>>1);
 
-		for( int_fast8_t eqY=-1; eqY<=1; eqY+=2 ) {
+		for( int_fast8_t eqY=-1; eqY<=1; eqY+=2 ) {	// -1==bottom of screen, 1==top
+
 			uint_fast16_t baseY = ( (eqY==1) ? EQ_GROUP_PADDING_Y : (h-EQ_GROUP_PADDING_Y-(EQ_BAR_HEIGHT)) );
+			int_fast8_t sideYOffset = (eqY==1) ? EQ_BAR_HEIGHT : -1;	// pseudo-3D sides
 
 			uint_fast8_t energy = baseEnergy;
 
@@ -244,6 +246,8 @@ void TwistyText::perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
 			newMeters[0] = energy;
 
 			for( uint_fast8_t row=0; row<3; row++ ) {	// 3 meter rows
+				uint_fast16_t sideColor = tft.color565( 0xaa + row*0x20, 0x55 + row*0x10, 0 );
+
 				// Draw position
 				uint_fast16_t drawY = baseY + row*eqY*(EQ_BAR_HEIGHT+EQ_BAR_SPACING_Y);
 
@@ -253,20 +257,38 @@ void TwistyText::perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
 				// Avoid flicker at low volume levels.
 				newMeters[row] = constrain( (uint_fast8_t)newMeters[row], (uint_fast8_t)1, (uint_fast8_t)MAX_EQ_BARS );
 
+				// Gently fade out over time
+				newMeters[row] = max( _meters[meterOffset+row]>>1, newMeters[row] );
+
 				// Either draw or erase bricks, depending on whether the meter level increased or decreased
+				boolean isErase = true;
 				uint_fast16_t color = _bgColor;	// default: erase
+				uint_fast8_t drawHeight = EQ_BAR_HEIGHT;
 
 				// If the energy of this row is higher: Set the draw color to something bright and colorful
 				if( newMeters[row] > prevMeter ) {
+					isErase = false;
+
 					uint_fast8_t bright = 0x66 + row*0x33;
 					color = tft.color565( 0x66, bright, bright );
+
+				} else {
+					// Be sure to erase the pseudo-3D sides
+					drawHeight++;
+					if( eqY==-1 ) drawY--;
 				}
 
 				uint_fast8_t minMeter = min( newMeters[row], prevMeter );
 				uint_fast8_t maxMeter = max( newMeters[row], prevMeter );
+
 				for( uint_fast8_t m=minMeter; m<maxMeter; m++ ) {
 					uint_fast16_t drawX = baseX + m*eqX*(EQ_BAR_WIDTH+EQ_BAR_SPACING_X);
-					tft.fillRect( drawX, drawY, EQ_BAR_WIDTH, EQ_BAR_HEIGHT, color );
+					tft.fillRect( drawX, drawY, EQ_BAR_WIDTH, drawHeight, color );
+
+					// Draw fake 3D below each bar
+					if( !isErase ) {
+						tft.drawFastHLine( drawX, drawY+sideYOffset, EQ_BAR_WIDTH, sideColor );
+					}
 				}
 
 				// Save this value for next draw cycle. Redraw minimum area.
