@@ -26,7 +26,7 @@
 #include "TransitionSquares.h"
 
 const boolean DEBUG_ANIM = true; // dev: for hacking on one animation.
-const uint_fast8_t DEBUG_ANIM_INDEX = 7;
+const uint_fast8_t DEBUG_ANIM_INDEX = 4;
 
 const boolean DEBUG_TRANSITION = false;  // dev: set to true for short animation durations
 const int_fast8_t DEBUG_TRANSITION_INDEX = -1;  // Supports -1: chooses a transition at random

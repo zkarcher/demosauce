@@ -147,11 +147,16 @@ void Sphere3D::perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
 		}
 	}
 
-  _circStep++;
-  if( _circStep > 10 ) _circStep = 0;
+	const uint_fast8_t RADIATION_PX = 12;
 
-  tft.drawCircle( w_2, h_2, _baseCircSize + _circStep, tft.color565( 0, random((10-_circStep)*5), random((10-_circStep)*10) ) | _bgColor );
+  _circStep += random(1,4);
+  if( _circStep > RADIATION_PX ) _circStep -= RADIATION_PX;
 
+	float brightAmt = ((frameParams.audioMean + 1.0f) * 0.5f);	// 0.5...1
+	uint_fast8_t bright = (0xff/RADIATION_PX) * brightAmt;
+
+	uint_fast16_t radiationColor = tft.color565( 0, random((RADIATION_PX-_circStep)*(bright>>1)), random((RADIATION_PX-_circStep)*bright) ) | _bgColor;
+  tft.drawCircle( w_2, h_2, _baseCircSize + _circStep, radiationColor );
 }
 
 #endif
