@@ -20,12 +20,14 @@
 #include "Waveform.h"
 
 // Transitions
+#include "TransitionHalftone.h"
 #include "TransitionSquares.h"
 
-const boolean DEBUG_MODE = false; // dev: for hacking on one animation.
+const boolean DEBUG_ANIM = false; // dev: for hacking on one animation.
 const uint_fast8_t DEBUG_ANIM_INDEX = 1;
 
-const boolean DEBUG_TRANSITIONS = true;  // dev: set to true for short animation durations
+const boolean DEBUG_TRANSITION = true;  // dev: set to true for short animation durations
+const uint_fast8_t DEBUG_TRANSITION_INDEX = 0;
 
 const int_fast16_t DEFAULT_ANIM_TIME = 20 * 1000;  // ms
 
@@ -48,6 +50,7 @@ TriangleWeb * _triangleWeb         = new TriangleWeb();
 TwistyText * _twistyText           = new TwistyText();
 Waveform * _waveform               = new Waveform();
 
+TransitionHalftone * _transHalftone  = new TransitionHalftone();
 TransitionSquares * _transSquares  = new TransitionSquares();
 
 BaseAnimation **anims; // Array of pointers to BaseAnimation's. Initialized in setup() below.
@@ -112,6 +115,7 @@ void setup() {
   }
 
   BaseTransition* TRANS_TEMP[] = {
+    _transHalftone,
     _transSquares
   };
   transCount = sizeof( TRANS_TEMP ) / sizeof( BaseTransition* );
@@ -125,7 +129,7 @@ void setup() {
 
   // Start!
   if( !activeAnim ) {
-    if( DEBUG_MODE ) {
+    if( DEBUG_ANIM ) {
       startAnimation( anims[DEBUG_ANIM_INDEX] );
     } else {
       startAnimation( anims[0] );
@@ -142,7 +146,7 @@ void startAnimation( BaseAnimation *newAnim ) {
 
   animTimeLeft = DEFAULT_ANIM_TIME;
 
-  if( DEBUG_TRANSITIONS ) animTimeLeft = 2000;
+  if( DEBUG_TRANSITION ) animTimeLeft = 2000;
 }
 
 void loop() {
@@ -176,9 +180,9 @@ void loop() {
   boolean forceTransitionNow = activeAnim->forceTransitionNow();
 
   // Debugging transitions: Ignore animations hogging the screen
-  if( DEBUG_TRANSITIONS ) willForceTransition = false;
+  if( DEBUG_TRANSITION ) willForceTransition = false;
 
-  if( !DEBUG_MODE ) {
+  if( !DEBUG_ANIM ) {
     if( (!willForceTransition && (animTimeLeft <= 0)) || forceTransitionNow ) {
 
       // If the transition has not started yet, then start it.
@@ -189,6 +193,8 @@ void loop() {
 
         // Choose a random transition
         activeTransition = transitions[ random(transCount) ];
+        if( DEBUG_TRANSITION ) activeTransition = transitions[ DEBUG_TRANSITION_INDEX ];
+
         activeTransition->restart( tft, nextAnim->bgColor() );
       }
 
