@@ -23,7 +23,7 @@
 #include "TransitionSquares.h"
 
 const boolean DEBUG_MODE = false; // dev: for hacking on one animation.
-const uint_fast8_t DEBUG_ANIM_INDEX = 5;
+const uint_fast8_t DEBUG_ANIM_INDEX = 1;
 
 const int_fast16_t DEFAULT_ANIM_TIME = 20 * 1000;  // ms
 
@@ -46,15 +46,19 @@ TriangleWeb * _triangleWeb         = new TriangleWeb();
 TwistyText * _twistyText           = new TwistyText();
 Waveform * _waveform               = new Waveform();
 
+TransitionSquares * _transSquares  = new TransitionSquares();
+
 BaseAnimation **anims; // Array of pointers to BaseAnimation's. Initialized in setup() below.
 int_fast8_t animCount;
 
 BaseAnimation *activeAnim = 0;
 int_fast16_t animTimeLeft = DEFAULT_ANIM_TIME;
-
 BaseAnimation *nextAnim;
 
+BaseTransition **transitions;
+int_fast8_t transCount;
 boolean isTransition = true;
+BaseTransition *activeTransition = 0;
 
 // Search the anims[] aray for the activeAnim pointer. If found, return the array index.
 int_fast8_t getActiveAnimIndex() {
@@ -98,13 +102,23 @@ void setup() {
   };
   animCount = sizeof( ANIMS_TEMP ) / sizeof( BaseAnimation* );
 
-  // Store ANIMS_TEMP as permanent anims
+  // Retain ANIMS_TEMP objects permanently
   anims = (BaseAnimation**)malloc( animCount * sizeof(BaseAnimation*) );
   for( int_fast8_t i=0; i<animCount; i++ ) {
     anims[i] = ANIMS_TEMP[i];
+    anims[i]->init( tft );      // Initalize all animations
+  }
 
-    // Initalize all animations
-    anims[i]->init( tft );
+  BaseTransition* TRANS_TEMP[] = {
+    _transSquares
+  };
+  transCount = sizeof( TRANS_TEMP ) / sizeof( BaseTransition* );
+
+  // Retain TRANS_TEMP objects permanently
+  transitions = (BaseTransition**)malloc( transCount * sizeof(BaseTransition*) );
+  for( int_fast8_t i=0; i<transCount; i++ ) {
+    transitions[i] = TRANS_TEMP[i];
+    transitions[i]->init( tft );
   }
 
   // Start!
@@ -163,14 +177,17 @@ void loop() {
       // If the transition has not started yet, then start it.
       if( !isTransition ) {
         isTransition = true;
+
         nextAnim = anims[ (getActiveAnimIndex() + 1) % animCount ];
 
-        transitionSquares_reset( tft, nextAnim->bgColor() );
+        // Choose a random transition
+        activeTransition = transitions[ random(transCount) ];
+        activeTransition->restart( tft, nextAnim->bgColor() );
       }
 
       // After the transition ends, advance to the next animation
-      boolean isTransitionComplete = transitionSquares_perFrame( tft, frameParams );
-      if( isTransitionComplete ) {
+      activeTransition->perFrame( tft, frameParams );
+      if( activeTransition->isComplete() ) {
         startAnimation( nextAnim );
       }
 
