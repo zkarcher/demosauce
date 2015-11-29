@@ -7,7 +7,8 @@
 #include "BaseTransition.h"
 
 
-const float TRANSITION_SCROLL_SPEED = 0.001f;
+const float TRANSITION_SCROLL_SPEED = 0.002f;
+const float SCROLL_WRAPS = 5.0f;
 
 
 class TransitionScroll : public BaseTransition {
@@ -22,7 +23,7 @@ public:
 private:
 	float _phase = 0;
 	uint_fast16_t _color;
-	uint_fast8_t _step;
+	uint_fast16_t _lastScroll;
 };
 
 void TransitionScroll::init( ILI9341_t3 tft ) {
@@ -34,55 +35,47 @@ void TransitionScroll::restart( ILI9341_t3 tft, uint_fast16_t inColor ) {
   //uint_fast16_t h = tft.height();
 	_phase = 0;
 	_color = inColor;
-	_step = 0;
+	_lastScroll = tft.width();
+}
+
+float easeInOutCubic( float p ) {
+  if( p < 0.5f ) {
+    float p2 = p * 2.0f;
+    return (p2*p2*p2) * 0.5f;
+  }
+
+  float p2 = (1.0f - p) * 2.0f;
+  return 1.0f - (p2*p2*p2) * 0.5f;
 }
 
 void TransitionScroll::perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
   uint_fast16_t w = (uint_fast16_t)tft.width();
   uint_fast16_t h = (uint_fast16_t)tft.height();
 
-	_phase += frameParams.timeMult * TRANSITION_DITHER_SPEED;
+	_phase += frameParams.timeMult * TRANSITION_SCROLL_SPEED * SCROLL_WRAPS;
 
 	// Apply some easing. Linear speed feels dull
-	float easeOutQuad = 1.0f - (1.0f-_phase)*(1.0f-_phase);
+	float ease = min( easeInOutCubic( _phase ), 1.0f );
 
-	// Calculate destination
-	float dest_f = min( easeOutQuad, 1.0f ) * w;
-	uint_fast8_t dest = floor(dest_f);
+	// Hmm. Let's try reading pixel color values and drawing a weird smear effect?
+	/*
+	float lineX_f = w * (1.0f-easeOutQuad);
+	uint_fast16_t lineX = floor(lineX_f);
+	uint_fast16_t lineW = min( (w - lineX) - 1, 64 );
+	*/
 
-	// Draw dither dots until _msb and _lsb hit their targets.
-	while( _step <= dest ) {
+	float unwrapped = SCROLL_WRAPS * ease;
+	float wrap = unwrapped - floor(unwrapped);
 
-		tft.setScroll( _step );
+	float scroll_f = w * (1.0f - wrap);
+	uint_fast16_t scroll = floor(scroll_f);
 
-		for( uint_fast16_t y=0; y<h; y++ ) {
-			tft.drawFastHLine( x, y, lineW, _color );
-		}
+	tft.setScroll( scroll );
 
-		// Bayer matrix. See: https://en.wikipedia.org/wiki/Ordered_dithering
-		// Recreate Bayer matrix pattern, basically a recursive sequence of 2D moves:  [ 0, 3,
-		//                                                                               2, 1 ]
-		uint_fast16_t start_i = 0;
-		uint_fast16_t start_j = 0;
-
-		uint_fast8_t move = (1<<3);
-		uint_fast8_t s = _step;
-		while( s > 0 ) {
-			if( s&0b01 ) start_i += move;
-			if( (boolean)(s&0b01) != (boolean)(s&0b10) ) start_j += move;
-
-			move >>= 1;
-			s >>= 2;
-		}
-
-		for( uint_fast16_t i=start_i; i<w; i+=0x10 ) {
-			for( uint_fast16_t j=start_j; j<h; j+=0x10 ) {
-				tft.drawPixel( i, j, _color );
-			}
-		}
-
-		_step++;
-
+	// Final frame: Fill with destination color
+	if( unwrapped > (SCROLL_WRAPS-1) ) {
+		tft.fillRect( (w-_lastScroll), 0, _lastScroll - scroll, h, _color );
+		_lastScroll = scroll;
 	}
 
 }

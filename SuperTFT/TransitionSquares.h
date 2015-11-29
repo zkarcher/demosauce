@@ -44,18 +44,6 @@ float easeInOutSine( float p ) {
   return 0.5f + ( sinf( ( p - 0.5f ) * M_PI ) * 0.5f );
 }
 
-/*
-float easeInOutCubic( float p ) {
-  if( p < 0.5f ) {
-    float p2 = p * 2.0f;
-    return (p2*p2*p2) * 0.5f;
-  }
-
-  float p2 = (1.0f - p) * 2.0f;
-  return 1.0f - (p2*p2*p2) * 0.5f;
-}
-*/
-
 void TransitionSquares::perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
   uint_fast16_t w = (uint_fast16_t)tft.width();
   uint_fast16_t h = (uint_fast16_t)tft.height();

@@ -94,7 +94,6 @@ void setup() {
 
   tft.setRotation( 3 ); // ribbon cable on left
   tft.setScroll( 0 );
-  tft.setColorSetDefault();
 
   // Populate anims in the order you want them to display.
   BaseAnimation* ANIMS_TEMP[] = {
@@ -148,6 +147,7 @@ void startAnimation( BaseAnimation *newAnim ) {
 
   activeAnim = newAnim;
   tft.fillScreen( activeAnim->bgColor() );
+  tft.setScroll( 0 );
   activeAnim->reset( tft );
 
   animTimeLeft = DEFAULT_ANIM_TIME;
