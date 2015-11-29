@@ -7,8 +7,8 @@
 #include "BaseTransition.h"
 
 
-const float TRANSITION_SQUARES_SPEED = 0.06;
-const float TRANSITION_SQUARES_SLOPE = 0.05f;
+const float TRANSITION_SQUARES_SPEED = 0.06f;
+const float TRANSITION_SQUARES_SLOPE = 0.08f;
 const uint_fast8_t TRANSITION_SQ_SIZE = 30;
 
 
@@ -39,10 +39,28 @@ void TransitionSquares::restart( ILI9341_t3 tft, uint_fast16_t inColor ) {
   _isComplete = false;
 }
 
+float easeInOutSine( float p ) {
+  if( p < 0.5f ) return (1.0f - cosf( p * M_PI )) * 0.5f;
+  return 0.5f + ( sinf( ( p - 0.5f ) * M_PI ) * 0.5f );
+}
+
+/*
+float easeInOutCubic( float p ) {
+  if( p < 0.5f ) {
+    float p2 = p * 2.0f;
+    return (p2*p2*p2) * 0.5f;
+  }
+
+  float p2 = (1.0f - p) * 2.0f;
+  return 1.0f - (p2*p2*p2) * 0.5f;
+}
+*/
+
 void TransitionSquares::perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
   uint_fast16_t w = (uint_fast16_t)tft.width();
   uint_fast16_t h = (uint_fast16_t)tft.height();
 
+  float prevPhase = _phase;
 	_phase += frameParams.timeMult * TRANSITION_SQUARES_SPEED;
 
   boolean anySmallSquares = false;
@@ -53,11 +71,20 @@ void TransitionSquares::perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
   for( uint_fast8_t i=0; i<across; i++ ) {
     for( uint_fast8_t j=0; j<down; j++ ) {
 
-      uint_fast8_t size = TRANSITION_SQ_SIZE * constrain( _phase - (i+j)*TRANSITION_SQUARES_SLOPE, 0.0f, 1.0f );
+      uint_fast8_t prevSize = TRANSITION_SQ_SIZE * easeInOutSine( constrain( prevPhase - (i+j)*TRANSITION_SQUARES_SLOPE, 0.0f, 1.0f ) );
+      prevSize = (prevSize>>1) << 1;  // Round down to even number
+
+      uint_fast8_t size = TRANSITION_SQ_SIZE * easeInOutSine( constrain( _phase - (i+j)*TRANSITION_SQUARES_SLOPE, 0.0f, 1.0f ) );
+      size = (size>>1) << 1;  // Round down to even number
       if( size < TRANSITION_SQ_SIZE ) anySmallSquares = true;
 
-      // Squares should grow out from center
-      tft.fillRect( (i+0.5f)*TRANSITION_SQ_SIZE - (size>>1), (j+0.5f)*TRANSITION_SQ_SIZE - (size>>1), size, size, _color );
+      // Squares should grow out from center.
+      // Draw hollow squares, so we only redraw pixels that change.
+      for( uint_fast8_t s=prevSize+2; s<=size; s+=2 ) {
+        tft.drawRect( (i+0.5f)*TRANSITION_SQ_SIZE - (s>>1), (j+0.5f)*TRANSITION_SQ_SIZE - (s>>1), s, s, _color );
+      }
+
+      //tft.fillRect( (i+0.5f)*TRANSITION_SQ_SIZE - (size>>1), (j+0.5f)*TRANSITION_SQ_SIZE - (size>>1), size, size, _color );
     }
   }
 
