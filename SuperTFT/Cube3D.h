@@ -70,7 +70,9 @@ void Cube3D::perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
 				Point16 pt = xyz2screen( x3d, y3d, z3d, w_2, h_2 );
 
 				//tft.drawCircle( pt.x, pt.y, 5, border );
-				tft.drawCircle( pt.x, pt.y, 7.0-z3d, eraseColor );
+				if( pt.y >= 0 ) {	// sanity check
+					tft.drawCircle( pt.x, pt.y, 7.0-z3d, eraseColor );
+				}
 
 				x3d = pCos*x - pSin*z;
 				y3d = y + hash*_audio;
@@ -82,7 +84,6 @@ void Cube3D::perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
 					float bright = ((3.0f+M_SQRT2)-z3d) * (1.0f/(2*M_SQRT2));	// range 0..1, higher number == closer
 					uint_fast16_t fillColor = tft.color565( 0x44, lerp8(0x66,0xff,bright), 0x44 );
 
-					//tft.drawCircle( pt.x, pt.y, 5, border );
 					tft.drawCircle( pt.x, pt.y, 7.0-z3d, fillColor );
 				}
 

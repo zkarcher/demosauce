@@ -25,11 +25,11 @@
 #include "TransitionScroll.h"
 #include "TransitionSquares.h"
 
-const boolean DEBUG_ANIM = false; // dev: for hacking on one animation.
-const uint_fast8_t DEBUG_ANIM_INDEX = 1;
+const boolean DEBUG_ANIM = true; // dev: for hacking on one animation.
+const uint_fast8_t DEBUG_ANIM_INDEX = 7;
 
-const boolean DEBUG_TRANSITION = true;  // dev: set to true for short animation durations
-const int_fast8_t DEBUG_TRANSITION_INDEX = -1;
+const boolean DEBUG_TRANSITION = false;  // dev: set to true for short animation durations
+const int_fast8_t DEBUG_TRANSITION_INDEX = -1;  // Supports -1: chooses a transition at random
 
 const int_fast16_t DEFAULT_ANIM_TIME = 20.0f * 1000.0f;  // ms
 
