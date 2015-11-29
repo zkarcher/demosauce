@@ -22,13 +22,14 @@
 // Transitions
 #include "TransitionDither.h"
 #include "TransitionHalftone.h"
+#include "TransitionScroll.h"
 #include "TransitionSquares.h"
 
 const boolean DEBUG_ANIM = false; // dev: for hacking on one animation.
 const uint_fast8_t DEBUG_ANIM_INDEX = 1;
 
 const boolean DEBUG_TRANSITION = true;  // dev: set to true for short animation durations
-const uint_fast8_t DEBUG_TRANSITION_INDEX = 0;
+const uint_fast8_t DEBUG_TRANSITION_INDEX = 2;
 
 const int_fast16_t DEFAULT_ANIM_TIME = 20 * 1000;  // ms
 
@@ -53,6 +54,7 @@ Waveform * _waveform               = new Waveform();
 
 TransitionDither * _transDither  = new TransitionDither();
 TransitionHalftone * _transHalftone  = new TransitionHalftone();
+TransitionScroll * _transScroll  = new TransitionScroll();
 TransitionSquares * _transSquares  = new TransitionSquares();
 
 BaseAnimation **anims; // Array of pointers to BaseAnimation's. Initialized in setup() below.
@@ -119,6 +121,7 @@ void setup() {
   BaseTransition* TRANS_TEMP[] = {
     _transDither,
     _transHalftone,
+    _transScroll,
     _transSquares
   };
   transCount = sizeof( TRANS_TEMP ) / sizeof( BaseTransition* );
