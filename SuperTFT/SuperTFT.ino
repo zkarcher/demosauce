@@ -28,7 +28,7 @@
 const boolean DEBUG_ANIM = false; // dev: for hacking on one animation.
 const uint_fast8_t DEBUG_ANIM_INDEX = 1;
 
-const boolean DEBUG_TRANSITION = true;  // dev: set to true for short animation durations
+const boolean DEBUG_TRANSITION = false;  // dev: set to true for short animation durations
 const uint_fast8_t DEBUG_TRANSITION_INDEX = 2;
 
 const int_fast16_t DEFAULT_ANIM_TIME = 20 * 1000;  // ms
