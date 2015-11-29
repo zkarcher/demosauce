@@ -7,9 +7,7 @@
 #include "BaseTransition.h"
 
 
-const float TRANSITION_DITHER_SPEED = 0.02f;
-const uint_fast8_t MSB_BITS = 4;
-const uint_fast8_t LSB_BITS = 4;
+const float TRANSITION_DITHER_SPEED = 0.012f;
 
 
 class TransitionDither : public BaseTransition {
@@ -24,8 +22,7 @@ public:
 private:
 	float _phase = 0;
 	uint_fast16_t _color;
-	uint_fast8_t _msb;
-	uint_fast8_t _lsb;
+	uint_fast8_t _step;
 };
 
 void TransitionDither::init( ILI9341_t3 tft ) {
@@ -37,8 +34,7 @@ void TransitionDither::restart( ILI9341_t3 tft, uint_fast16_t inColor ) {
   //uint_fast16_t h = tft.height();
 	_phase = 0;
 	_color = inColor;
-	_msb = 0;
-	_lsb = 0;
+	_step = 0;
 }
 
 void TransitionDither::perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
@@ -47,30 +43,36 @@ void TransitionDither::perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
 
 	_phase += frameParams.timeMult * TRANSITION_DITHER_SPEED;
 
-	// Calculate destination _msb and _lsb
-	float msbPhase_f = min(_phase,0.99999f) * (float)(1<<MSB_BITS);
-	uint_fast8_t msbTarget = floor(msbPhase_f);
-
-	float lsbPhase_f = (msbPhase_f - (float)msbTarget) * (float)(1<<LSB_BITS);
-	uint_fast8_t lsbTarget = floor(lsbPhase_f);
+	// Calculate destination
+	float dest_f = min( _phase, 1.0f ) * 0xff;
+	uint_fast8_t dest = floor(dest_f);
 
 	// Draw dither dots until _msb and _lsb hit their targets.
-	while( (_msb != msbTarget) || (_lsb != lsbTarget) ) {
+	while( _step < dest ) {
 
-		
+		// Bayer matrix. See: https://en.wikipedia.org/wiki/Ordered_dithering
+		// Recreate Bayer matrix pattern, basically a recursive sequence of 2D moves:  [ 0, 3,
+		//                                                                               2, 1 ]
+		uint_fast16_t start_i = 0;
+		uint_fast16_t start_j = 0;
 
-		for( uint_fast16_t i=_lsb; i<w; i+=(1<<LSB_BITS) ) {
-			for( uint_fast16_t j=_msb; j<h; j+=(1<<MSB_BITS) ) {
+		uint_fast8_t move = (1<<3);
+		uint_fast8_t s = _step;
+		while( s > 0 ) {
+			if( s&0b01 ) start_i += move;
+			if( (boolean)(s&0b01) != (boolean)(s&0b10) ) start_j += move;
+
+			move >>= 1;
+			s >>= 2;
+		}
+
+		for( uint_fast16_t i=start_i; i<w; i+=0x10 ) {
+			for( uint_fast16_t j=start_j; j<h; j+=0x10 ) {
 				tft.drawPixel( i, j, _color );
 			}
 		}
 
-		_lsb++;
-
-		if( _lsb == (1<<LSB_BITS) ) {
-			_lsb = 0;
-			_msb++;
-		}
+		_step++;
 
 	}
 
