@@ -50,7 +50,7 @@ void TransitionDither::perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
 	float dest_f = min( easeOutQuad, 1.0f ) * 0xff;
 	uint_fast8_t dest = floor(dest_f);
 
-	// Draw dither dots until _msb and _lsb hit their targets.
+	// Draw dither dots until _step reaches the destination
 	while( _step <= dest ) {
 
 		// Bayer matrix. See: https://en.wikipedia.org/wiki/Ordered_dithering
@@ -62,8 +62,8 @@ void TransitionDither::perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
 		uint_fast8_t move = (1<<3);
 		uint_fast8_t s = _step;
 		while( s > 0 ) {
-			if( s&0b01 ) start_i += move;
-			if( (boolean)(s&0b01) != (boolean)(s&0b10) ) start_j += move;
+			if( s&0b01 ) start_i += move;	// 1 & 3: move horizontal
+			if( (s&0b01) ^ ((s&0b10)>>1) ) start_j += move;	// 1 & 2: move vertical
 
 			move >>= 1;
 			s >>= 2;
