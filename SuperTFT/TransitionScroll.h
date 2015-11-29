@@ -7,10 +7,12 @@
 #include "BaseTransition.h"
 
 
-const float TRANSITION_SCROLL_SPEED = 0.0018f;
+const float TRANSITION_SCROLL_SPEED = 0.0014f;
 const float SCROLL_WRAPS = 5.0f;
-const uint_fast8_t MAX_STAGGER_X = 1;
-const uint_fast8_t MAX_STAGGER_HEIGHT = 5;
+
+const uint_fast8_t MAX_STAGGER_X = 20;
+const uint_fast8_t MAX_STAGGER_HEIGHT = 4;
+const float STAGGER_X_STRENGTH = 100.0f;	// stagger is higher when the ease motion is faster
 
 
 class TransitionScroll : public BaseTransition {
@@ -25,6 +27,7 @@ public:
 private:
 	float _phase = 0;
 	uint_fast16_t _color;
+	float _lastEase;
 	uint_fast16_t _lastScroll;
 	uint16_t * _pixels;
 };
@@ -38,6 +41,7 @@ void TransitionScroll::restart( ILI9341_t3 tft, uint_fast16_t inColor ) {
   //uint_fast16_t h = tft.height();
 	_phase = 0;
 	_color = inColor;
+	_lastEase = 0;
 	_lastScroll = tft.width();
 }
 
@@ -68,14 +72,7 @@ void TransitionScroll::perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
 	_phase += frameParams.timeMult * TRANSITION_SCROLL_SPEED * SCROLL_WRAPS;
 
 	// Apply some easing. Linear speed feels dull
-	float ease = min( easeInOutQuart( _phase ), 1.0f );
-
-	// Hmm. Let's try reading pixel color values and drawing a weird smear effect?
-	/*
-	float lineX_f = w * (1.0f-easeOutQuad);
-	uint_fast16_t lineX = floor(lineX_f);
-	uint_fast16_t lineW = min( (w - lineX) - 1, 64 );
-	*/
+	float ease = min( easeInOutCubic( _phase ), 1.0f );
 
 	float unwrapped = SCROLL_WRAPS * ease;
 	float wrap = unwrapped - floor(unwrapped);
@@ -93,9 +90,15 @@ void TransitionScroll::perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
 			_lastScroll = scroll;
 		}
 
+		// Fill part of a random line
+		uint_fast16_t x = random((uint_fast16_t)(w*0.9f),w);
+		uint_fast16_t y = random(h);
+		tft.drawFastHLine( x, y, w-x, _color );
+
 	} else {
 		// Let's noise this thing up
-		uint_fast16_t staggerX = random(1,MAX_STAGGER_X);
+		uint_fast16_t staggerX = 1 + constrain( (ease-_lastEase) * STAGGER_X_STRENGTH, 0.0f, 1.0f ) * MAX_STAGGER_X;
+
 		uint_fast8_t staggerHeight = random(1,MAX_STAGGER_HEIGHT+1);
 		uint_fast16_t startY = random(h-(staggerHeight-1));
 
@@ -104,8 +107,10 @@ void TransitionScroll::perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
 			tft.readRect( 0, y, w, 1, _pixels );
 			tft.writeRect( staggerX, y, w-staggerX, 1, _pixels );
 		}
-		//tft.drawFastHLine( 0, random(h), w, _color );
+
 	}
+
+	_lastEase = ease;
 
 }
 
