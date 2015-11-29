@@ -28,10 +28,10 @@
 const boolean DEBUG_ANIM = false; // dev: for hacking on one animation.
 const uint_fast8_t DEBUG_ANIM_INDEX = 1;
 
-const boolean DEBUG_TRANSITION = false;  // dev: set to true for short animation durations
-const uint_fast8_t DEBUG_TRANSITION_INDEX = 2;
+const boolean DEBUG_TRANSITION = true;  // dev: set to true for short animation durations
+const int_fast8_t DEBUG_TRANSITION_INDEX = -1;
 
-const int_fast16_t DEFAULT_ANIM_TIME = 20 * 1000;  // ms
+const int_fast16_t DEFAULT_ANIM_TIME = 20.0f * 1000.0f;  // ms
 
 const uint8_t TFT_DC = 9;
 const uint8_t TFT_CS = 10;
@@ -198,8 +198,10 @@ void loop() {
         nextAnim = anims[ (getActiveAnimIndex() + 1) % animCount ];
 
         // Choose a random transition
-        activeTransition = transitions[ random(transCount+1) ];
-        if( DEBUG_TRANSITION ) activeTransition = transitions[ DEBUG_TRANSITION_INDEX ];
+        activeTransition = transitions[ random(transCount) ];
+        if( DEBUG_TRANSITION && (DEBUG_TRANSITION_INDEX >= 0) ) {
+          activeTransition = transitions[ DEBUG_TRANSITION_INDEX ];
+        }
 
         activeTransition->restart( tft, nextAnim->bgColor() );
       }
