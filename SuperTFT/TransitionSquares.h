@@ -54,10 +54,10 @@ void TransitionSquares::perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
     for( uint_fast8_t j=0; j<down; j++ ) {
 
       uint_fast8_t size = TRANSITION_SQ_SIZE * constrain( _phase - (i+j)*TRANSITION_SQUARES_SLOPE, 0.0f, 1.0f );
-      if( size < SQ_SIZE ) anySmallSquares = true;
+      if( size < TRANSITION_SQ_SIZE ) anySmallSquares = true;
 
       // Squares should grow out from center
-      tft.fillRect( (i+0.5f)*TRANSITION_SQ_SIZE - (size>>1), (j+0.5f)*SQ_SIZE - (size>>1), size, size, _color );
+      tft.fillRect( (i+0.5f)*TRANSITION_SQ_SIZE - (size>>1), (j+0.5f)*TRANSITION_SQ_SIZE - (size>>1), size, size, _color );
     }
   }
 

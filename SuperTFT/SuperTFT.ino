@@ -25,6 +25,8 @@
 const boolean DEBUG_MODE = false; // dev: for hacking on one animation.
 const uint_fast8_t DEBUG_ANIM_INDEX = 1;
 
+const boolean DEBUG_TRANSITIONS = true;  // dev: set to true for short animation durations
+
 const int_fast16_t DEFAULT_ANIM_TIME = 20 * 1000;  // ms
 
 const uint8_t TFT_DC = 9;
@@ -52,7 +54,7 @@ BaseAnimation **anims; // Array of pointers to BaseAnimation's. Initialized in s
 int_fast8_t animCount;
 
 BaseAnimation *activeAnim = 0;
-int_fast16_t animTimeLeft = DEFAULT_ANIM_TIME;
+int_fast16_t animTimeLeft = 0;
 BaseAnimation *nextAnim;
 
 BaseTransition **transitions;
@@ -139,6 +141,8 @@ void startAnimation( BaseAnimation *newAnim ) {
   activeAnim->reset( tft );
 
   animTimeLeft = DEFAULT_ANIM_TIME;
+
+  if( DEBUG_TRANSITIONS ) animTimeLeft = 2000;
 }
 
 void loop() {
@@ -170,6 +174,9 @@ void loop() {
   // Has this animation expired?
   boolean willForceTransition = activeAnim->willForceTransition();
   boolean forceTransitionNow = activeAnim->forceTransitionNow();
+
+  // Debugging transitions: Ignore animations hogging the screen
+  if( DEBUG_TRANSITIONS ) willForceTransition = false;
 
   if( !DEBUG_MODE ) {
     if( (!willForceTransition && (animTimeLeft <= 0)) || forceTransitionNow ) {
