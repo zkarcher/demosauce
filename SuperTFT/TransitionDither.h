@@ -7,7 +7,7 @@
 #include "BaseTransition.h"
 
 
-const float TRANSITION_DITHER_SPEED = 0.012f;
+const float TRANSITION_DITHER_SPEED = 0.015f;
 
 
 class TransitionDither : public BaseTransition {
@@ -43,12 +43,15 @@ void TransitionDither::perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
 
 	_phase += frameParams.timeMult * TRANSITION_DITHER_SPEED;
 
+	// Apply some easing. Linear speed feels dull
+	float easeOutQuad = 1.0f - (1.0f-_phase)*(1.0f-_phase);
+
 	// Calculate destination
-	float dest_f = min( _phase, 1.0f ) * 0xff;
+	float dest_f = min( easeOutQuad, 1.0f ) * 0xff;
 	uint_fast8_t dest = floor(dest_f);
 
 	// Draw dither dots until _msb and _lsb hit their targets.
-	while( _step < dest ) {
+	while( _step <= dest ) {
 
 		// Bayer matrix. See: https://en.wikipedia.org/wiki/Ordered_dithering
 		// Recreate Bayer matrix pattern, basically a recursive sequence of 2D moves:  [ 0, 3,

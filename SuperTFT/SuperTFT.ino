@@ -195,7 +195,7 @@ void loop() {
         nextAnim = anims[ (getActiveAnimIndex() + 1) % animCount ];
 
         // Choose a random transition
-        activeTransition = transitions[ random(transCount) ];
+        activeTransition = transitions[ random(transCount+1) ];
         if( DEBUG_TRANSITION ) activeTransition = transitions[ DEBUG_TRANSITION_INDEX ];
 
         activeTransition->restart( tft, nextAnim->bgColor() );

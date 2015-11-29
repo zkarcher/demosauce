@@ -9,7 +9,7 @@
 
 const float TRANSITION_SQUARES_SPEED = 0.06f;
 const float TRANSITION_SQUARES_SLOPE = 0.08f;
-const uint_fast8_t TRANSITION_SQ_SIZE = 30;
+const uint_fast8_t TRANSITION_SQ_SIZE = 30; // multiple of 2, please
 
 
 class TransitionSquares : public BaseTransition {
