@@ -41,7 +41,7 @@ void TransitionSquares::restart( ILI9341_t3 tft, uint_fast16_t inColor ) {
 
 float easeInOutSine( float p ) {
   if( p < 0.5f ) return (1.0f - cosf( p * M_PI )) * 0.5f;
-  return 0.5f + ( sinf( ( p - 0.5f ) * M_PI ) * 0.5f );
+  return 0.5f + ( sin( ( p - 0.5f ) * M_PI ) * 0.5f );
 }
 
 void TransitionSquares::perFrame( ILI9341_t3 tft, FrameParams frameParams ) {

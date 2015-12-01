@@ -10,7 +10,7 @@
 const float HALFTONE_SPEED = 0.06f;
 const float HALFTONE_SLOPE = 0.5f;
 const int_fast8_t HALFTONE_CIRC_SIZE = 15;
-const uint_fast8_t HALFTONE_CIRC_SPACING = (uint_fast8_t)(HALFTONE_CIRC_SIZE * cosf(M_PI/6.0f)) * 2 - 1;
+const uint_fast8_t HALFTONE_CIRC_SPACING = (uint_fast8_t)(HALFTONE_CIRC_SIZE * cos(M_PI/6.0f)) * 2 - 1;
 
 
 class TransitionHalftone : public BaseTransition {
@@ -52,7 +52,7 @@ void TransitionHalftone::perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
   boolean anySmallCircles = false;
 
 	// Draw circes, offset so circles grow out from center
-  int_fast8_t across = (w / (HALFTONE_CIRC_SPACING*cosf(M_PI/6.0f))) + 1;
+  int_fast8_t across = (w / (HALFTONE_CIRC_SPACING*cos(M_PI/6.0f))) + 1;
 	int_fast8_t across_2 = (across>>1);
   int_fast8_t down = h / HALFTONE_CIRC_SPACING + 1;
 	int_fast8_t down_2 = (down>>1)+1;
