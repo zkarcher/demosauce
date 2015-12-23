@@ -149,10 +149,10 @@ void TwistyText::perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
 
 		uint_fast16_t baseColor;
 		switch( lineIdx ) {
-			case 0:    baseColor = 0x44ffff; break;	// "HYDRONICS"
+			case 0:    baseColor = 0x22ffff; break;	// "HYDRONICS"
 			case 1:    baseColor = 0xffff44; break; // "+ ZKARCHER"
-			case 2:    baseColor = 0xff88ff; break; // "PRESENT"
-			case 3:    baseColor = 0x88ffbb; break; // "SUPER-TFT!";
+			case 2:    baseColor = 0xff22ff; break; // "PRESENT"
+			case 3:    baseColor = 0x33ff88; break; // "SUPER-TFT!";
 			default:   baseColor = 0xbb0000; break; // hearts
 		}
 

@@ -199,6 +199,17 @@ void loop() {
 
         nextAnim = anims[ (getActiveAnimIndex() + 1) % animCount ];
 
+        // When we loop back to the first animation, shuffle the other ones for variety.
+        if( nextAnim == anims[0] ) {
+          for( int_fast8_t i=1; i<animCount-1; i++ ) {
+            uint_fast8_t shuffleIdx = random( i, animCount );
+
+            BaseAnimation* temp = anims[i];
+            anims[i] = anims[shuffleIdx];
+            anims[shuffleIdx] = temp;
+          }
+        }
+
         // Choose a random transition
         activeTransition = transitions[ random(transCount) ];
         if( DEBUG_TRANSITION && (DEBUG_TRANSITION_INDEX >= 0) ) {
