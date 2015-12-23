@@ -64,6 +64,11 @@ void TriangleWeb::perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
 
   // Prepare web color
   uint_fast8_t bright = (frameParams.audioPeak >> 1); // 0..512 -> 0..255
+
+	// Weight brighter
+	uint_fast16_t invBrightSquared = (0xff-bright)*(0xff-bright);
+	bright = lerp8( bright, 0xff - (invBrightSquared>>8), 0.55f );
+
   uint_fast16_t color = tft.color565( bright, bright, bright );
 
   // When dark: Always illuminate one "lucky" line at random
