@@ -22,7 +22,8 @@ struct PointF {
 };
 
 uint_fast8_t lerp8( uint_fast8_t a, uint_fast8_t b, float progress ){
-	return a + (b-a)*progress;
+	// Cast to int, avoid horrible values when b-a is less than zero
+	return a + (int_fast8_t)((int_fast8_t)b-(int_fast8_t)a)*progress;
 }
 
 float lerp( float a, float b, float progress ){

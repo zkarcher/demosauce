@@ -210,7 +210,14 @@ const uint_fast8_t PROGMEM FONT_TABLE[]  = {
 	0b11011111,
 	0b11011111,
 	0b00000000,
-	0b00000000
+	0b00000000,
+
+	// HEART
+	0b00011100,
+	0b00111110,
+	0b01111000,
+	0b00111110,
+	0b00011100
 };
 uint_fast8_t FONT_TABLE_LENGTH = sizeof( FONT_TABLE ) / sizeof( uint_fast8_t );
 

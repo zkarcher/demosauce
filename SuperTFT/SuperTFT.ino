@@ -26,7 +26,7 @@
 #include "TransitionScroll.h"
 #include "TransitionSquares.h"
 
-const boolean DEBUG_ANIM = true; // dev: for hacking on one animation.
+const boolean DEBUG_ANIM = false; // dev: for hacking on one animation.
 const uint_fast8_t DEBUG_ANIM_INDEX = 0;
 
 const boolean DEBUG_TRANSITION = false;  // dev: set to true for short animation durations

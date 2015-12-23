@@ -19,9 +19,9 @@ const float WOBBLE_FREQ = 2.5f;
 const float WOBBLE_AMOUNT = 0.35f;
 const float WOBBLE_TORQUE = -0.19f;
 
-//                    0.........10........20........30........
-const char LINES[] = "HYDRONICS + ZKARCHER PRESENT: SUPER-TFT!";
-const uint_fast8_t LINE_COUNT = 4;
+//                    0.........10........20........30........40........
+const char LINES[] = "HYDRONICS + ZKARCHER PRESENT: SUPER-TFT!^^^^^^^^^^";
+const uint_fast8_t LINE_COUNT = 5;
 const uint_fast8_t CHARS_PER_LINE = 10;
 
 
@@ -104,7 +104,7 @@ void TwistyText::perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
 			angle = angleFloor + 0.5f + ramp*0.5f;
 		}
 
-		// Hang on the final line, "SUPER-TFT". Don't roll over to the first line.
+		// Hang on the final line, the hearts. Don't roll over to the first line.
 		if( angle > _initPhase + LINE_COUNT - 0.5f ) {
 			angle = _initPhase + LINE_COUNT - 0.5f;
 		}
@@ -127,6 +127,7 @@ void TwistyText::perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
 			case ':':     fontIdx = 27; break;
 			case '-':     fontIdx = 28; break;
 			case '!':     fontIdx = 29; break;
+			case '^':     fontIdx = 30; break;	// heart
 			default:      fontIdx = asciiValue - 'A'; break;
 		}
 
@@ -144,7 +145,6 @@ void TwistyText::perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
 
 		float cosAngle = cos( angle );
 		float cosAngleAbs = abs( cosAngle );
-		float cosAngleNorm = (cosAngle+1.0)*0.5f;
 		float sinAngle = sin( angle );
 
 		uint_fast16_t baseColor;
@@ -152,13 +152,15 @@ void TwistyText::perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
 			case 0:    baseColor = 0x44ffff; break;	// "HYDRONICS"
 			case 1:    baseColor = 0xffff44; break; // "+ ZKARCHER"
 			case 2:    baseColor = 0xff88ff; break; // "PRESENT"
-			default:   baseColor = 0x88ffbb; break; // "SUPER-TFT!";
+			case 3:    baseColor = 0x88ffbb; break; // "SUPER-TFT!";
+			default:   baseColor = 0xbb0000; break; // hearts
 		}
 
+		// cosAngleAbs: gives a color channel a more metallic appearance. sinAngle: more traditional lighting.
 		uint_fast16_t color = tft.color565(
-			lerp8( 0x33, (baseColor&0xff0000)>>16, cosAngleNorm ),
-			lerp8( 0x44, (baseColor&0x00ff00)>>8,  cosAngleNorm ),
-			lerp8( 0x44, (baseColor&0x0000ff),     cosAngleNorm )
+			lerp8( 0x33, (baseColor&0xff0000)>>16, sinAngle ),
+			lerp8( 0x44, (baseColor&0x00ff00)>>8,  sinAngle ),
+			lerp8( 0x44, (baseColor&0x0000ff),     sinAngle )
 		);
 
 		uint_fast16_t sideColor = tft.color565( 0xff * cosAngleAbs, 0x88 * cosAngleAbs, 0 );
