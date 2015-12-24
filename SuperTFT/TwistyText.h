@@ -20,7 +20,7 @@ const float WOBBLE_AMOUNT = 0.35f;
 const float WOBBLE_TORQUE = -0.19f;
 
 //                    0.........10........20........30........40........
-const char LINES[] = "HYDRONICS + ZKARCHER PRESENT: SUPER-TFT!^^^^^^^^^^";
+const char LINES[] = "HYDRONICS + ZKARCHER PRESENT: SUPER-TFT!(){}(){}()";
 const uint_fast8_t LINE_COUNT = 5;
 const uint_fast8_t CHARS_PER_LINE = 10;
 
@@ -82,7 +82,7 @@ void TwistyText::perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
 
 	for( uint_fast8_t c=0; c<(CHARS_PER_LINE*7); c++ ) {
 		uint_fast8_t columnInChar = c % 7;
-		if( columnInChar >= 5 ) continue;	// Ignore spacing between characters
+		//if( columnInChar >= 5 ) continue;	// Ignore spacing between characters
 
 		uint_fast8_t charInLine = (c / 7);
 
@@ -127,19 +127,28 @@ void TwistyText::perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
 			case ':':     fontIdx = 27; break;
 			case '-':     fontIdx = 28; break;
 			case '!':     fontIdx = 29; break;
-			case '^':     fontIdx = 30; break;	// heart
+			case '(':     fontIdx = 30; break;	// heart (left)
+			case ')':     fontIdx = 31; break;	// heart (right)
+			case '{':     fontIdx = 32; break;	// skull (left)
+			case '}':     fontIdx = 33; break;	// skull (right)
 			default:      fontIdx = asciiValue - 'A'; break;
 		}
 
-		uint_fast16_t charStart = fontIdx * 5;	// 5 columns per character
+		uint_fast16_t charStart = fontIdx * 7;	// 7 columns per character
 
 		uint_fast8_t colByte = 0;
 		if( (0 <= charStart) && (charStart < FONT_TABLE_LENGTH) ) {
 			colByte = pgm_read_byte( &FONT_TABLE[ charStart + columnInChar ] );
 		}
-
+		
 		uint_fast16_t left = paddingLeft + c * TEXT_PIXEL_WIDTH;
-
+		
+		if( colByte == 0 ) {
+			// *1.5: Cheap hack. Ensure rects from the previous frame are erased.
+			tft.fillRect( left, h_2 - TEXT_PIXEL_HEIGHT*1.5, TEXT_PIXEL_WIDTH, TEXT_PIXEL_HEIGHT*TEXT_3D_THICKNESS_MULT*1.5, _bgColor );
+			continue;
+		}
+		
 		// Prepare to erase the background
 		uint_fast16_t eraseTop = h_2 - 4.5*TEXT_PIXEL_HEIGHT;
 
@@ -155,12 +164,24 @@ void TwistyText::perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
 			case 3:    baseColor = 0x33ff88; break; // "SUPER-TFT!";
 			default:   baseColor = 0xbb0000; break; // hearts
 		}
-
-		// cosAngleAbs: gives a color channel a more metallic appearance. sinAngle: more traditional lighting.
+		
+		// Skull == grey
+		if( (fontIdx==32) || (fontIdx==33) ) {
+			baseColor = 0xaaaaaa;
+		}
+		
+		// Material color:
+		//    cosAngleAbs: gives a color channel a more metallic appearance. 
+		//    sinAngle: more traditional lighting.
+		//    tri: Happy medium.
+		float tri = angle * (2.0f/M_PI);	// 0..2
+		if( tri > 1.0 ) tri = 2.0f - tri;	// 0..1..0
+		float triShiny = lerp( tri, tri*tri, 0.65f );	// Weight more towards grey. Material surface looks shiny.
+		
 		uint_fast16_t color = tft.color565(
-			lerp8( 0x33, (baseColor&0xff0000)>>16, sinAngle ),
-			lerp8( 0x44, (baseColor&0x00ff00)>>8,  sinAngle ),
-			lerp8( 0x44, (baseColor&0x0000ff),     sinAngle )
+			lerp8( 0x33, (baseColor&0xff0000)>>16, triShiny ),
+			lerp8( 0x44, (baseColor&0x00ff00)>>8,  triShiny ),
+			lerp8( 0x44, (baseColor&0x0000ff),     triShiny )
 		);
 
 		uint_fast16_t sideColor = tft.color565( 0xff * cosAngleAbs, 0x88 * cosAngleAbs, 0 );
