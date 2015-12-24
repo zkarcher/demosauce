@@ -43,6 +43,7 @@ private:
 	float _phase = 0;
 	uint_fast16_t _bgColor;
 	uint_fast8_t _meters[12];
+	boolean _drawnColumns[CHARS_PER_LINE*7];
 };
 
 void TwistyText::init( ILI9341_t3 tft ) {
@@ -58,6 +59,10 @@ void TwistyText::reset( ILI9341_t3 tft ) {
 
 	for( uint_fast8_t m=0; m<12; m++ ) {
 		_meters[m] = 0;
+	}
+	
+	for( uint_fast8_t c=0; c<(CHARS_PER_LINE*7); c++ ) {
+		_drawnColumns[c] = false;
 	}
 }
 
@@ -144,10 +149,16 @@ void TwistyText::perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
 		uint_fast16_t left = paddingLeft + c * TEXT_PIXEL_WIDTH;
 		
 		if( colByte == 0 ) {
-			// *1.5: Cheap hack. Ensure rects from the previous frame are erased.
-			tft.fillRect( left, h_2 - TEXT_PIXEL_HEIGHT*1.5, TEXT_PIXEL_WIDTH, TEXT_PIXEL_HEIGHT*TEXT_3D_THICKNESS_MULT*1.5, _bgColor );
+			// Only erase columns if there's rects to erase from the last frame.
+			if( _drawnColumns[c] ) {
+				// *1.6: Cheap hack. Ensure rects from the previous frame are erased.
+				tft.fillRect( left, h_2 - TEXT_PIXEL_HEIGHT*1.6, TEXT_PIXEL_WIDTH, TEXT_PIXEL_HEIGHT*TEXT_3D_THICKNESS_MULT*1.6, _bgColor );
+				_drawnColumns[c] = false;
+			}
 			continue;
 		}
+		
+		_drawnColumns[c] = true;
 		
 		// Prepare to erase the background
 		uint_fast16_t eraseTop = h_2 - 4.5*TEXT_PIXEL_HEIGHT;
