@@ -17,6 +17,7 @@ public:
 
 	void init( ILI9341_t3 tft );
 	uint_fast16_t bgColor( void );
+	String title();
 	void perFrame( ILI9341_t3 tft, FrameParams frameParams );
 
 private:
@@ -41,6 +42,10 @@ void TriangleWeb::init( ILI9341_t3 tft ) {
 
 uint_fast16_t TriangleWeb::bgColor(){
 	return _bgColor;
+}
+
+String TriangleWeb::title() {
+	return "TriangleWeb";
 }
 
 Point TriangleWeb::getWebPoint( uint_fast8_t i, uint_fast8_t j, float phase ) {
