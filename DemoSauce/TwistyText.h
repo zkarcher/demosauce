@@ -20,7 +20,7 @@ const float WOBBLE_AMOUNT = 0.35f;
 const float WOBBLE_TORQUE = -0.19f;
 
 //                    0.........10........20........30........40........
-const char LINES[] = "HYDRONICS + ZKARCHER PRESENT: SUPER-TFT!(){}(){}()";
+const char LINES[] = "HYDRONICS + ZKARCHER PRESENT: DEMOSAUCE!(){}(){}()";
 const uint_fast8_t LINE_COUNT = 5;
 const uint_fast8_t CHARS_PER_LINE = 10;
 

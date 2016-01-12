@@ -1,8 +1,21 @@
+/***************************************************
+                 **  DemoSauce!  **
+  State-of-the-art graphics for your beautiful TFT display.
+
+  Greetz to the Portland Dorkbot Crew!!!!
+
+         Programmed by Zach Archer (@zkarcher)  ::  http://controlzinc.com/
+  Using hardware by Thomas Hudson (@hydronics)  ::  http://thomashudson.org/
+
+  Usage:
+    * Connect a microphone to MIC_PIN.
+    * Connect TFT backlight to BACKLIGHT_PIN.
+
+  MIT license, all text above must be included in any redistribution
+ ****************************************************/
+
 #include "SPI.h"
 #include "ILI9341_t3.h"
-
-#define MIC_PIN (14)
-#define BACKLIGHT_PIN (23)
 
 #include "FrameParams.h"
 
@@ -36,8 +49,11 @@ const int_fast8_t DEBUG_TRANSITION_INDEX = -1;  // Supports -1: chooses a transi
 
 const int_fast16_t DEFAULT_ANIM_TIME = 20.0f * 1000.0f;  // ms
 
+// TFT pins
 const uint8_t TFT_DC = 9;
 const uint8_t TFT_CS = 10;
+const uint8_t MIC_PIN = 14;
+const uint8_t BACKLIGHT_PIN = 23;
 
 // Use hardware SPI (on Uno, #13, #12, #11) and the above for CS/DC
 ILI9341_t3 tft = ILI9341_t3(TFT_CS, TFT_DC);
@@ -86,7 +102,7 @@ int_fast8_t getActiveAnimIndex() {
 void setup() {
   // Backlight
   pinMode( BACKLIGHT_PIN, OUTPUT );
-  analogWrite( BACKLIGHT_PIN, 1024 );
+  analogWrite( BACKLIGHT_PIN, 1023 );
 
   // Microphone
   pinMode( MIC_PIN, INPUT );
@@ -94,6 +110,7 @@ void setup() {
   // Serial
   if( DO_BENCHMARKS ) {
     Serial.begin( SERIAL_BAUD_RATE );
+    while (!Serial); // wait for Arduino Serial Monitor
   }
 
   tft.begin();
