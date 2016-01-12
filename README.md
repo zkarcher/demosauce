@@ -4,10 +4,8 @@ State-of-the-art graphics for your TFT display.
 
 Greets to the Portland Dorkbot Crew!!!!
 
-```
-       Programmed by Zach Archer (@zkarcher)  ::  [controlzinc.com](http://controlzinc.com/)
-Using hardware by Thomas Hudson (@hydronics)  ::  [thomashudson.org](http://thomashudson.org/)
-```
++ Programmed by [Zach Archer](http://controlzinc.com/) (@zkarcher)
++ Using hardware by [Thomas Hudson](http://thomashudson.org/) (@hydronics)
 
 Usage:
   * Connect a microphone to MIC_PIN.
