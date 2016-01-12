@@ -244,34 +244,6 @@ void loop() {
 
         nextAnim = anims[ (getActiveAnimIndex() + 1) % animCount ];
 
-        /*
-        // Print some debug stuff
-        if( DO_BENCHMARKS ) {
-          Serial.println("---------- Testing sinf() vs sin() performance");
-          unsigned long then = micros();
-          float z = 0;
-          for( uint32_t i=0; i<50000; i++ ) {
-            z += sinf( (float)i );
-          }
-          unsigned long now = micros();
-          Serial.print("sinf:");
-          Serial.println( now - then );
-          Serial.print("   z:");
-          Serial.println( z );
-
-          then = micros();
-          z = 0;
-          for( uint32_t i=0; i<50000; i++ ) {
-            z += sin( (float)i );
-          }
-          now = micros();
-          Serial.print(" sin:");
-          Serial.println( now - then );
-          Serial.print("   z:");
-          Serial.println( z );
-        }
-        */
-
         // When we loop back to the first animation, shuffle the other ones for variety.
         if( nextAnim == anims[0] ) {
           for( int_fast8_t i=1; i<animCount-1; i++ ) {
