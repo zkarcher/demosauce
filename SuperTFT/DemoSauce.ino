@@ -2,7 +2,7 @@
                  **  DemoSauce!  **
   State-of-the-art graphics for your TFT display.
 
-  Greets to the Portland Dorkbot Crew!!!!
+  Greetz to the Portland Dorkbot Cr3w!!!!
 
          Programmed by Zach Archer (@zkarcher)  ::  http://controlzinc.com/
   Using hardware by Thomas Hudson (@hydronics)  ::  http://thomashudson.org/

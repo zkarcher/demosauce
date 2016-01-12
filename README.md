@@ -2,7 +2,7 @@
 
 State-of-the-art graphics for your TFT display.
 
-Greets to the Portland Dorkbot Crew!!!!
+Greetz to the Portland Dorkbot Cr3w!!!!
 
 + Programmed by [Zach Archer](http://controlzinc.com/) (@zkarcher)
 + Using hardware by [Thomas Hudson](http://thomashudson.org/) (@hydronics)
