@@ -22,6 +22,7 @@ public:
 
 	void init( ILI9341_t3 tft );
 	uint_fast16_t bgColor( void );
+	String title();
 	void perFrame( ILI9341_t3 tft, FrameParams frameParams );
 
 private:
@@ -48,6 +49,10 @@ void Sphere3D::init( ILI9341_t3 tft ) {
 
 uint_fast16_t Sphere3D::bgColor(){
 	return _bgColor;
+}
+
+String Sphere3D::title() {
+	return "Sphere3D";
 }
 
 void Sphere3D::_drawLine( ILI9341_t3 tft, float cosTilt, float sinTilt, float x, float y, float z, uint_fast16_t w_2, uint_fast16_t h_2, uint_fast16_t color ) {

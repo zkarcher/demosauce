@@ -31,6 +31,7 @@ public:
 
 	void init( ILI9341_t3 tft );
 	uint_fast16_t bgColor( void );
+	String title();
 	void reset( ILI9341_t3 tft );
 
 	boolean willForceTransition( void );
@@ -54,13 +55,17 @@ uint_fast16_t TwistyText::bgColor( void ) {
 	return _bgColor;
 }
 
+String TwistyText::title() {
+	return "TwistyText";
+}
+
 void TwistyText::reset( ILI9341_t3 tft ) {
 	_phase = _initPhase = LINE_COUNT * random(999);
 
 	for( uint_fast8_t m=0; m<12; m++ ) {
 		_meters[m] = 0;
 	}
-	
+
 	for( uint_fast8_t c=0; c<(CHARS_PER_LINE*7); c++ ) {
 		_drawnColumns[c] = false;
 	}
@@ -145,9 +150,9 @@ void TwistyText::perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
 		if( (0 <= charStart) && (charStart < FONT_TABLE_LENGTH) ) {
 			colByte = pgm_read_byte( &FONT_TABLE[ charStart + columnInChar ] );
 		}
-		
+
 		uint_fast16_t left = paddingLeft + c * TEXT_PIXEL_WIDTH;
-		
+
 		if( colByte == 0 ) {
 			// Only erase columns if there's rects to erase from the last frame.
 			if( _drawnColumns[c] ) {
@@ -157,9 +162,9 @@ void TwistyText::perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
 			}
 			continue;
 		}
-		
+
 		_drawnColumns[c] = true;
-		
+
 		// Prepare to erase the background
 		uint_fast16_t eraseTop = h_2 - 4.5*TEXT_PIXEL_HEIGHT;
 
@@ -175,20 +180,20 @@ void TwistyText::perFrame( ILI9341_t3 tft, FrameParams frameParams ) {
 			case 3:    baseColor = 0x33ff88; break; // "SUPER-TFT!";
 			default:   baseColor = 0xbb0000; break; // hearts
 		}
-		
+
 		// Skull == grey
 		if( (fontIdx==32) || (fontIdx==33) ) {
 			baseColor = 0xaaaaaa;
 		}
-		
+
 		// Material color:
-		//    cosAngleAbs: gives a color channel a more metallic appearance. 
+		//    cosAngleAbs: gives a color channel a more metallic appearance.
 		//    sinAngle: more traditional lighting.
 		//    tri: Happy medium.
 		float tri = angle * (2.0f/M_PI);	// 0..2
 		if( tri > 1.0 ) tri = 2.0f - tri;	// 0..1..0
 		float triShiny = lerp( tri, tri*tri, 0.65f );	// Weight more towards grey. Material surface looks shiny.
-		
+
 		uint_fast16_t color = tft.color565(
 			lerp8( 0x33, (baseColor&0xff0000)>>16, triShiny ),
 			lerp8( 0x44, (baseColor&0x00ff00)>>8,  triShiny ),

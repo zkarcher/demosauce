@@ -9,7 +9,6 @@
 // Animations
 #include "Checkerboard.h"
 #include "Cube3D.h"
-//#include "GlitchSea.h"
 #include "Leaves.h"
 #include "MagentaSquares.h"
 //#include "MicCheck.h"
@@ -25,6 +24,9 @@
 #include "TransitionHalftone.h"
 #include "TransitionScroll.h"
 #include "TransitionSquares.h"
+
+const boolean DO_BENCHMARKS = true;
+const uint32_t SERIAL_BAUD_RATE = 9600;
 
 const boolean DEBUG_ANIM = false; // dev: for hacking on one animation.
 const uint_fast8_t DEBUG_ANIM_INDEX = 0;
@@ -44,7 +46,6 @@ long previousMillis = 0;
 
 Checkerboard * _checkerboard       = new Checkerboard();
 Cube3D * _cube3D                   = new Cube3D();
-//GlitchSea * _glitchSea             = new GlitchSea();
 Leaves * _leaves                   = new Leaves();
 MagentaSquares * _magentaSquares   = new MagentaSquares();
 PlasmaCloud * _plasmaCloud         = new PlasmaCloud();
@@ -71,6 +72,9 @@ int_fast8_t transCount;
 boolean isTransition = true;
 BaseTransition *activeTransition = 0;
 
+// Benchmarks
+uint32_t frameCount;
+
 // Search the anims[] aray for the activeAnim pointer. If found, return the array index.
 int_fast8_t getActiveAnimIndex() {
   for( int_fast8_t i=0; i<animCount; i++ ) {
@@ -86,6 +90,11 @@ void setup() {
 
   // Microphone
   pinMode( MIC_PIN, INPUT );
+
+  // Serial
+  if( DO_BENCHMARKS ) {
+    Serial.begin( SERIAL_BAUD_RATE );
+  }
 
   tft.begin();
 
@@ -155,6 +164,23 @@ void startAnimation( BaseAnimation *newAnim ) {
   animTimeLeft = DEFAULT_ANIM_TIME;
 
   if( DEBUG_TRANSITION ) animTimeLeft = 2000;
+
+  if( DO_BENCHMARKS ) {
+    Serial.println("---");
+    Serial.print( activeAnim->title() );
+
+    if( activeAnim->willForceTransition() ) {
+      // TwistyText does not obey DEFAULT_ANIM_TIME
+      Serial.println("");
+
+    } else {
+      Serial.print("  [");
+      Serial.print( (uint8_t)(animTimeLeft / 1000.0f) );
+      Serial.println(" secs]");
+    }
+
+    frameCount = 0;
+  }
 }
 
 void loop() {
@@ -181,6 +207,8 @@ void loop() {
   if( !isTransition ) {
     activeAnim->perFrame( tft, frameParams );
     animTimeLeft -= elapsed;
+
+    if( DO_BENCHMARKS ) frameCount++;
   }
 
   // Has this animation expired?
@@ -198,6 +226,34 @@ void loop() {
         isTransition = true;
 
         nextAnim = anims[ (getActiveAnimIndex() + 1) % animCount ];
+
+        /*
+        // Print some debug stuff
+        if( DO_BENCHMARKS ) {
+          Serial.println("---------- Testing sinf() vs sin() performance");
+          unsigned long then = micros();
+          float z = 0;
+          for( uint32_t i=0; i<50000; i++ ) {
+            z += sinf( (float)i );
+          }
+          unsigned long now = micros();
+          Serial.print("sinf:");
+          Serial.println( now - then );
+          Serial.print("   z:");
+          Serial.println( z );
+
+          then = micros();
+          z = 0;
+          for( uint32_t i=0; i<50000; i++ ) {
+            z += sin( (float)i );
+          }
+          now = micros();
+          Serial.print(" sin:");
+          Serial.println( now - then );
+          Serial.print("   z:");
+          Serial.println( z );
+        }
+        */
 
         // When we loop back to the first animation, shuffle the other ones for variety.
         if( nextAnim == anims[0] ) {
@@ -217,6 +273,20 @@ void loop() {
         }
 
         activeTransition->restart( tft, nextAnim->bgColor() );
+
+        // Benchmark: show how many frames the animation completed while alive.
+        if( DO_BENCHMARKS ) {
+          Serial.print("Frame count (more is better):  ");
+          Serial.print( frameCount );
+
+          if( !activeAnim->willForceTransition() ) {
+            Serial.print( "  (" );
+            Serial.print( (float)frameCount / (DEFAULT_ANIM_TIME / 1000.0f) );
+            Serial.println(" FPS)");
+          } else {
+            Serial.println("");
+          }
+        }
       }
 
       // After the transition ends, advance to the next animation

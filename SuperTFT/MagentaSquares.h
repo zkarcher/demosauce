@@ -22,6 +22,7 @@ public:
 
 	void init( ILI9341_t3 tft );
 	uint_fast16_t bgColor( void );
+	String title();
 	void perFrame( ILI9341_t3 tft, FrameParams frameParams );
 
 private:
@@ -68,6 +69,10 @@ void MagentaSquares::init( ILI9341_t3 tft ) {
 
 uint_fast16_t MagentaSquares::bgColor( void ) {
 	return _bgColor;
+}
+
+String MagentaSquares::title() {
+	return "MagentaSquares";
 }
 
 void MagentaSquares::perFrame( ILI9341_t3 tft, FrameParams frameParams ) {

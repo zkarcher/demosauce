@@ -12,6 +12,7 @@ public:
 	virtual void init( ILI9341_t3 tft );
 	virtual uint_fast16_t bgColor( void );
 	virtual void reset( ILI9341_t3 tft );
+	virtual String title();
 
 	virtual boolean willForceTransition( void );
 	virtual boolean forceTransitionNow( void );
@@ -30,6 +31,10 @@ uint_fast16_t BaseAnimation::bgColor( void ) {
 
 void BaseAnimation::reset( ILI9341_t3 tft ) {
 	// Extend me
+}
+
+String BaseAnimation::title() {
+	return "BaseAnimation";
 }
 
 boolean BaseAnimation::willForceTransition( void ) {

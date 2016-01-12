@@ -18,6 +18,7 @@ public:
 
 	void init( ILI9341_t3 tft );
 	uint_fast16_t bgColor( void );
+	String title();
 	void perFrame( ILI9341_t3 tft, FrameParams frameParams );
 
 private:
@@ -32,6 +33,10 @@ void PlasmaYellow::init( ILI9341_t3 tft ) {
 
 uint_fast16_t PlasmaYellow::bgColor(){
 	return _bgColor;
+}
+
+String PlasmaYellow::title() {
+	return "PlasmaYellow";
 }
 
 void PlasmaYellow::perFrame( ILI9341_t3 tft, FrameParams frameParams ) {

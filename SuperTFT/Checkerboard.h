@@ -23,6 +23,7 @@ public:
 
 	void init( ILI9341_t3 tft );
 	uint_fast16_t bgColor( void );
+	String title();
 	void perFrame( ILI9341_t3 tft, FrameParams frameParams );
 
 private:
@@ -36,6 +37,10 @@ void Checkerboard::init( ILI9341_t3 tft ) {
 
 uint_fast16_t Checkerboard::bgColor(){
 	return _bgColor;
+}
+
+String Checkerboard::title() {
+	return "Checkerboard";
 }
 
 void Checkerboard::perFrame( ILI9341_t3 tft, FrameParams frameParams ) {

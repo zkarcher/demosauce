@@ -21,6 +21,7 @@ public:
 
 	void init( ILI9341_t3 tft );
 	uint_fast16_t bgColor( void );
+	String title();
 	void perFrame( ILI9341_t3 tft, FrameParams frameParams );
 
 private:
@@ -36,6 +37,10 @@ void Leaves::init( ILI9341_t3 tft ) {
 
 uint_fast16_t Leaves::bgColor(){
 	return _bgColor;
+}
+
+String Leaves::title() {
+	return "Leaves";
 }
 
 void Leaves::_drawLeaves( ILI9341_t3 tft, boolean doErase, uint_fast8_t iter, float radius, float spin, float x, float y, uint_fast16_t solidColor, uint_fast16_t outlineColor ) {
