@@ -38,7 +38,7 @@
 #include "TransitionScroll.h"
 #include "TransitionSquares.h"
 
-const boolean DO_BENCHMARKS = true;
+const boolean DO_BENCHMARKS = false;
 const uint32_t SERIAL_BAUD_RATE = 9600;
 
 const boolean DEBUG_ANIM = false; // dev: for hacking on one animation.
@@ -47,7 +47,7 @@ const uint_fast8_t DEBUG_ANIM_INDEX = 0;
 const boolean DEBUG_TRANSITION = false;  // dev: set to true for short animation durations
 const int_fast8_t DEBUG_TRANSITION_INDEX = -1;  // Supports -1: chooses a transition at random
 
-const int_fast16_t DEFAULT_ANIM_TIME = 20.0f * 1000.0f;  // ms
+const int_fast16_t DEFAULT_ANIM_TIME = 12.0f * 1000.0f;  // ms
 
 // TFT pins
 const uint8_t TFT_DC = 9;
@@ -59,6 +59,14 @@ const uint8_t BACKLIGHT_PIN = 23;
 ILI9341_t3 tft = ILI9341_t3(TFT_CS, TFT_DC);
 FrameParams frameParams;
 long previousMillis = 0;
+
+// Multiple displays
+ILI9341_t3 tft2 = ILI9341_t3(15, TFT_DC);
+ILI9341_t3 tft3 = ILI9341_t3(20, TFT_DC);
+ILI9341_t3 tft4 = ILI9341_t3(21, TFT_DC);
+
+float liss_phase = 0.0f;
+uint16_t liss_color = 0x0;
 
 Checkerboard * _checkerboard       = new Checkerboard();
 Cube3D * _cube3D                   = new Cube3D();
@@ -114,6 +122,14 @@ void setup() {
   }
 
   tft.begin();
+
+	// Multiple displays w00t
+	tft2.begin();
+	tft3.begin();
+	tft4.begin();
+	tft2.setRotation( 3 ); // ribbon cable on left
+	tft3.setRotation( 3 ); // ribbon cable on left
+	tft4.setRotation( 1 ); // ribbon cable on right
 
   // Clear
   uint16_t w = tft.width();
@@ -217,7 +233,11 @@ void loop() {
     frameParams.audioPeak = max( frameParams.audioPeak, sample );
     sum += sample;
   }
+
+	frameParams.audioPeak *= 0.25f;	// FIXME DEMO
+
   frameParams.audioMean = sum * (1.0 / (512*SAMPLES_PER_FRAME));  // Range: 0..1
+	frameParams.audioMean *= 0.25f;	// FIXME DEMO
 
   frameParams.audioPeak = min( (uint_fast16_t)frameParams.audioPeak, (uint_fast16_t)511 );
 
@@ -314,5 +334,88 @@ void loop() {
 
     }
   }
+
+	//
+	// Multiple displays
+	//
+
+	tft.waitTransmitComplete_public();
+	//tft.waitFifoEmpty_public();
+
+	int16_t x0 = random(0, tft2.width());
+	int16_t x1 = random(0, tft2.width());
+	int16_t y0 = random(0, tft2.height());
+	int16_t y1 = random(0, tft2.height());
+	tft2.fillRect(
+		min(x0, x1),
+		min(y0, y1),
+		abs(x0 - x1),
+		abs(y0 - y1),
+		random(0, 0x0fff)
+	);
+
+	tft2.waitTransmitComplete_public();
+	//tft2.waitFifoEmpty_public();
+
+	liss_phase += frameParams.timeMult * 0.025f;
+	liss_color += 1;
+
+	uint16_t rgb = (liss_color * 2) % (0xff * 6);
+
+	// lazy rainbow
+	uint16_t clr = 0x0;
+	if (rgb < 0xff) {
+		clr = tft3.color565(0xff, rgb, 0);	// red -> yellow
+	} else {
+		rgb -= 0xff;
+		if (rgb < 0xff) {
+			clr = tft3.color565(0xff - rgb, 0xff, 0);	// yellow -> green
+		} else {
+			rgb -= 0xff;
+			if (rgb < 0xff) {
+				clr = tft3.color565(0, 0xff, rgb);	// green -> cyan
+			} else {
+				rgb -= 0xff;
+				if (rgb < 0xff) {
+					clr = tft3.color565(0, 0xff - rgb, 0xff);	// cyan -> blue
+				} else {
+					rgb -= 0xff;
+					if (rgb < 0xff) {
+						clr = tft3.color565(rgb, 0, 0xff);	// blue -> magenta
+					} else {
+						rgb -= 0xff;
+						clr = tft3.color565(0xff, 0, 0xff - rgb);	// magenta -> red
+					}
+				}
+			}
+		}
+	}
+
+	const uint8_t radius = 20;
+	tft3.fillCircle(
+		(sin(liss_phase * 1.0f) + 1.0f) * ((tft3.width() - 2*radius) >> 1) + radius,
+		(sin(liss_phase * 1.131f) + 1.0f) * ((tft3.height() - 2*radius) >> 1) + radius,
+		radius,
+		clr
+	);
+
+	tft3.waitTransmitComplete_public();
+
+	int16_t line_x = (liss_color * 2) % tft4.width();
+	int16_t bend_x = sin(liss_phase * 1.65f) * 40.0f;
+	uint8_t clr_rand = random(0, 0xff);
+	clr = tft4.color565(clr_rand, clr_rand, clr_rand);
+
+	for (int8_t offset = -1; offset <= 1; offset++) {
+		tft4.drawLine(
+			(line_x - bend_x) + offset,
+			0,
+			(line_x + bend_x) + offset,
+			tft4.height() - 1,
+			clr
+		);
+	}
+
+	tft4.waitTransmitComplete_public();
 
 }
